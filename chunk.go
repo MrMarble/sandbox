@@ -14,8 +14,9 @@ type Chunk struct {
 	width, height int
 	x, y          int
 
-	cells   []Cell
-	changes []Change
+	filledCells int
+	cells       []Cell
+	changes     []Change
 }
 
 func NewChunk(width, height, x, y int) *Chunk {
@@ -64,6 +65,11 @@ func (c *Chunk) SetCell(x, y int, cell Cell) {
 }
 
 func (c *Chunk) SetCellAt(i int, cell Cell) {
+	if c.cells[i].cType == EMPTY && cell.cType != EMPTY {
+		c.filledCells++
+	} else if c.cells[i].cType != EMPTY && cell.cType == EMPTY {
+		c.filledCells--
+	}
 	c.cells[i] = cell
 }
 

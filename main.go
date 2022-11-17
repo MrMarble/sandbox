@@ -105,7 +105,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for _, chunk := range g.sanbox.chunks {
 		rect(screen, chunk.x*chunk.width, chunk.y*chunk.height, chunk.width, chunk.height)
 	}
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nType: %d", ebiten.ActualTPS(), ebiten.ActualFPS(), g.selectedCellType))
+	dbg := fmt.Sprintf("TPS: %0.2f\n", ebiten.CurrentTPS())
+	dbg += fmt.Sprintf("FPS: %0.2f\n", ebiten.CurrentFPS())
+	dbg += fmt.Sprintf("Brush size: %d\n", g.brushSize)
+	dbg += fmt.Sprintf("Cell type: %d\n", g.selectedCellType)
+	dbg += fmt.Sprintf("Chunks: %d\n", len(g.sanbox.chunks))
+	dbg += fmt.Sprintf("ChunksL: %d\n", len(g.sanbox.chunkLookup))
+	ebitenutil.DebugPrint(screen, dbg)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

@@ -1,15 +1,15 @@
 package main
 
-import (
-	"math/rand"
-)
-
 type Sandbox struct {
 	width, height   int
 	cWidth, cHeight int
 
 	chunks      []*Chunk
 	chunkLookup map[int]*Chunk
+}
+
+func hash(x, y int) int {
+	return x*31 ^ y
 }
 
 func NewSandbox(width, height int) *Sandbox {
@@ -27,7 +27,7 @@ func NewSandbox(width, height int) *Sandbox {
 
 func (s *Sandbox) GetChunk(x, y int) *Chunk {
 	cx, cy := s.GetChunkLocation(x, y)
-	if chunk, ok := s.chunkLookup[cy*s.cWidth+cx]; ok {
+	if chunk, ok := s.chunkLookup[hash(cx, cy)]; ok {
 		return chunk
 	}
 	return s.CreateChunk(cx, cy)
@@ -41,7 +41,7 @@ func (s *Sandbox) CreateChunk(x, y int) *Chunk {
 	}
 	chunk := NewChunk(s.cWidth, s.cHeight, x, y)
 	s.chunks = append(s.chunks, chunk)
-	s.chunkLookup[y*s.cWidth+x] = chunk
+	s.chunkLookup[hash(x, y)] = chunk
 	return chunk
 }
 
@@ -84,26 +84,22 @@ func (s *Sandbox) MoveCell(x, y, xn, yn int) {
 	}
 }
 
+func (s *Sandbox) RemoveEmptyChunks() {
+	for i := 0; i < len(s.chunks); i++ {
+		chunk := s.chunks[i]
+		if chunk.filledCells == 0 {
+			delete(s.chunkLookup, hash(chunk.x, chunk.y))
+			s.chunks = append(s.chunks[:i], s.chunks[i+1:]...)
+			i--
+
+			chunk = nil
+		}
+	}
+}
+
 func (s *Sandbox) Update() {
 	for _, chunk := range s.chunks {
-		for y := 0; y < chunk.height; y++ {
-			for x := 0; x < chunk.width; x++ {
-				c := chunk.GetCellAt(x + y*chunk.width)
-				px := x + chunk.x*chunk.width
-				py := y + chunk.y*chunk.height
-				if c.cType == EMPTY {
-					continue
-				}
-				switch c.cType {
-				case SAND:
-					s.MovePowder(px, py, c)
-				case WATER:
-					s.MoveLiquid(px, py, c)
-				case STONE:
-					s.MoveSolid(px, py, c)
-				}
-			}
-		}
+		NewWorker(s, chunk).UpdateChunk()
 	}
 
 	for _, chunk := range s.chunks {
@@ -130,67 +126,7 @@ func (s *Sandbox) Draw(pix []byte) {
 			pix[idx*4+3] = cell.color.A
 		}
 	}
-}
-
-func (s *Sandbox) MovePowder(x, y int, cell *Cell) {
-	if s.IsEmpty(x, y+1) {
-		s.MoveCell(x, y, x, y+1)
-	} else {
-		xn, yn := s.randomNeighbour(x, y, 1)
-		if xn != -1 && yn != -1 {
-			s.MoveCell(x, y, xn, yn)
-		}
-	}
-}
-
-func (s *Sandbox) MoveLiquid(x, y int, cell *Cell) {
-	if s.IsEmpty(x, y+1) {
-		s.MoveCell(x, y, x, y+1)
-	} else {
-		xn, yn := s.randomNeighbour(x, y, 1)
-		if xn != -1 && yn != -1 {
-			s.MoveCell(x, y, xn, yn)
-		} else {
-			xn, yn = s.randomNeighbour(x, y, 0)
-			if xn != -1 && yn != -1 {
-				s.MoveCell(x, y, xn, yn)
-			}
-		}
-	}
-}
-
-func (s *Sandbox) MoveSolid(x, y int, cell *Cell) {
-	if s.IsEmpty(x, y+1) {
-		s.MoveCell(x, y, x, y+1)
-	}
-}
-
-func (s *Sandbox) randomNeighbour(x, y, yOffset int) (int, int) {
-
-	// check if left is air
-	leftFree := false
-	if s.InBounds(x-1, y+yOffset) && s.IsEmpty(x-1, y) && s.IsEmpty(x-1, y+yOffset) {
-		leftFree = true
-	}
-
-	// check if right is air
-	rightFree := false
-	if s.InBounds(x+1, y+yOffset); s.IsEmpty(x+1, y) && s.IsEmpty(x+1, y+yOffset) {
-		rightFree = true
-	}
-
-	if leftFree || rightFree {
-		if leftFree && rightFree {
-			if rand.Intn(2) == 1 {
-				return x - 1, y + yOffset
-			}
-			return x + 1, y + yOffset
-		} else if leftFree {
-			return x - 1, y + yOffset
-		} else {
-			return x + 1, y + yOffset
-		}
-	}
-	return -1, -1
+	// Remove chunks here to avoid leaving dangling particles
+	s.RemoveEmptyChunks()
 
 }
