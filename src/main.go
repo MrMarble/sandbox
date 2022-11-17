@@ -139,7 +139,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	dbg := fmt.Sprintf("Brush size: %d\n", g.brushSize)
-	dbg += fmt.Sprintf("Cell type: %d\n", g.selectedCellType)
+	dbg += fmt.Sprintf("Cell type: %s\n", g.selectedCellType)
 	dbg += fmt.Sprintf("Pause: %v\n", g.pause)
 	if g.debug {
 		dbg += fmt.Sprintf("TPS: %0.2f\n", ebiten.CurrentTPS())

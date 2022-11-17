@@ -2,6 +2,8 @@ package main
 
 import "image/color"
 
+//go:generate stringer -type=CellType
+
 type CellType int
 
 const (
