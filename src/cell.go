@@ -1,6 +1,9 @@
 package main
 
-import "image/color"
+import (
+	"image/color"
+	"math/rand"
+)
 
 //go:generate stringer -type=CellType
 
@@ -36,6 +39,9 @@ type Cell struct {
 	cType CellType
 
 	color color.RGBA
+
+	extraData1 int
+	extraData2 int
 }
 
 func ParseHexColor(s string) (c color.RGBA) {
@@ -68,7 +74,17 @@ func ParseHexColor(s string) (c color.RGBA) {
 }
 
 func NewCell(cType CellType) *Cell {
-	return &Cell{cType: cType, color: ParseHexColor(getColor(cType))}
+	switch cType {
+	case SMKE:
+		return &Cell{
+			cType:      cType,
+			color:      ParseHexColor(getColor(cType)),
+			extraData1: 90 + (rand.Intn(40) + -20),
+			extraData2: 90,
+		}
+	default:
+		return &Cell{cType: cType, color: ParseHexColor(getColor(cType))}
+	}
 }
 
 func (c *Cell) WithVariation(variation byte) *Cell {

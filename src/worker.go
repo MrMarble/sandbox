@@ -99,6 +99,35 @@ func (w *Worker) UpdateChunk() {
 	}
 }
 
+func (w *Worker) UpdateChunkState() {
+	for x := w.chunk.minX; x < w.chunk.maxX; x++ {
+		for y := w.chunk.minY; y < w.chunk.maxY; y++ {
+			c := w.chunk.GetCellAt(x + y*w.chunk.width)
+			px := x + w.chunk.x*w.chunk.width
+			py := y + w.chunk.y*w.chunk.height
+			if c.cType == AIR {
+				continue
+			}
+			switch c.cType {
+			case SMKE:
+				w.UpdateSmoke(px, py)
+			}
+		}
+	}
+}
+
+func (s *Worker) UpdateSmoke(x, y int) {
+	cell := s.GetCell(x, y)
+	if cell.extraData1 == 0 {
+		cell.extraData2--
+		if cell.extraData2 == 0 {
+			s.SetCell(x, y, Cell{cType: AIR})
+		}
+	} else {
+		cell.extraData1--
+	}
+}
+
 func (s *Worker) MovePowder(x, y int, cell *Cell) {
 	if s.IsEmpty(x, y+1) {
 		s.MoveCell(x, y, x, y+1)

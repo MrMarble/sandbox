@@ -108,7 +108,7 @@ func (s *Sandbox) RemoveEmptyChunks() {
 	}
 }
 
-func (s *Sandbox) Update() {
+func (s *Sandbox) MoveUpdate() {
 	var wg sync.WaitGroup
 	for _, chunk := range s.chunks {
 		wg.Add(1)
@@ -131,6 +131,23 @@ func (s *Sandbox) Update() {
 	for _, chunk := range s.chunks {
 		chunk.UpdateRect()
 	}
+}
+
+func (s *Sandbox) StateUpdate() {
+	var wg sync.WaitGroup
+	for _, chunk := range s.chunks {
+		wg.Add(1)
+		go func(s *Sandbox, c *Chunk) {
+			NewWorker(s, c).UpdateChunkState()
+			wg.Done()
+		}(s, chunk)
+	}
+	wg.Wait()
+}
+
+func (s *Sandbox) Update() {
+	s.MoveUpdate()
+	s.StateUpdate()
 }
 
 func (s *Sandbox) KeepAlive(x, y int) {
