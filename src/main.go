@@ -24,8 +24,11 @@ const (
 )
 
 type Game struct {
-	pixels []byte
-	sanbox *Sandbox
+	pixels  []byte
+	sandbox *Sandbox
+
+	pause bool
+	debug bool
 
 	selectedCellType CellType
 	brushSize        int
@@ -65,8 +68,18 @@ func (g *Game) HandleInput() {
 	} else if inpututil.IsKeyJustPressed(ebiten.Key5) {
 		g.selectedCellType = EMPTY
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+		g.pause = !g.pause
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyD) {
+		g.debug = !g.debug
+	}
+
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		g.sanbox = NewSandbox(screenWidth, screenHeight)
+		g.sandbox = NewSandbox(screenWidth, screenHeight)
+		g.pixels = make([]byte, screenWidth*screenHeight*4)
 	}
 }
 
@@ -99,7 +112,9 @@ func (g *Game) Update() error {
 	g.HandleInput()
 	g.placeParticles()
 
-	g.sanbox.Update()
+	if !g.pause {
+		g.sandbox.Update()
+	}
 	return nil
 }
 
@@ -109,24 +124,31 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.pixels = make([]byte, screenWidth*screenHeight*4)
 	}
 
-	g.sanbox.Draw(g.pixels)
+	g.sandbox.Draw(g.pixels)
 	screen.WritePixels(g.pixels)
 	rect(screen, g.cursorPos[0]-g.brushSize/2, g.cursorPos[1]-g.brushSize/2, g.brushSize, g.brushSize, color.White)
 	// DEBUG
-	for _, chunk := range g.sanbox.chunks {
-		rect(screen, chunk.x*chunk.width, chunk.y*chunk.height, chunk.width, chunk.height, color.RGBA{100, 0, 0, 100})
-		if chunk.maxX > 0 {
-			rect(screen, chunk.x*chunk.width+chunk.minX, chunk.y*chunk.height+chunk.minY, chunk.maxX-chunk.minX, chunk.maxY-chunk.minY, color.RGBA{0, 100, 0, 100})
+	if g.debug {
+		for _, chunk := range g.sandbox.chunks {
+			rect(screen, chunk.x*chunk.width, chunk.y*chunk.height, chunk.width, chunk.height, color.RGBA{100, 0, 0, 100})
+			if chunk.maxX > 0 {
+				rect(screen, chunk.x*chunk.width+chunk.minX, chunk.y*chunk.height+chunk.minY, chunk.maxX-chunk.minX, chunk.maxY-chunk.minY, color.RGBA{0, 100, 0, 100})
 
+			}
 		}
 	}
-	dbg := fmt.Sprintf("TPS: %0.2f\n", ebiten.CurrentTPS())
-	dbg += fmt.Sprintf("FPS: %0.2f\n", ebiten.CurrentFPS())
-	dbg += fmt.Sprintf("Brush size: %d\n", g.brushSize)
+
+	dbg := fmt.Sprintf("Brush size: %d\n", g.brushSize)
 	dbg += fmt.Sprintf("Cell type: %d\n", g.selectedCellType)
-	dbg += fmt.Sprintf("Chunks: %d\n", len(g.sanbox.chunks))
-	dbg += fmt.Sprintf("ChunksL: %d\n", len(g.sanbox.chunkLookup))
+	dbg += fmt.Sprintf("Pause: %v\n", g.pause)
+	if g.debug {
+		dbg += fmt.Sprintf("TPS: %0.2f\n", ebiten.CurrentTPS())
+		dbg += fmt.Sprintf("FPS: %0.2f\n", ebiten.CurrentFPS())
+		dbg += fmt.Sprintf("Chunks: %d\n", len(g.sandbox.chunks))
+		dbg += fmt.Sprintf("ChunksL: %d\n", g.sandbox.chunkLookup.Count())
+	}
 	ebitenutil.DebugPrint(screen, dbg)
+
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -135,7 +157,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func main() {
 	g := &Game{
-		sanbox:           NewSandbox(screenWidth, screenHeight),
+		sandbox:          NewSandbox(screenWidth, screenHeight),
 		selectedCellType: SAND,
 		brushSize:        10,
 	}
@@ -173,9 +195,9 @@ func (g *Game) placeParticles() {
 			for x := p1x - (g.brushSize / 2); x < (p1x + g.brushSize/2); x++ {
 				for y := p1y - (g.brushSize / 2); y < (p1y + g.brushSize/2); y++ {
 					if x >= 0 && x < screenWidth && y >= 0 && y < screenHeight {
-						if g.selectedCellType == EMPTY || g.sanbox.IsEmpty(x, y) {
+						if g.selectedCellType == EMPTY || g.sandbox.IsEmpty(x, y) {
 							variable := byte(rand.Intn(20))
-							g.sanbox.SetCell(x, y, *NewCell(g.selectedCellType).WithVariation(variable))
+							g.sandbox.SetCell(x, y, *NewCell(g.selectedCellType).WithVariation(variable))
 						}
 					}
 				}

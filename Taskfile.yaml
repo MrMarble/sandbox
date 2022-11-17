@@ -10,5 +10,27 @@ tasks:
     cmds:
       - echo "Starting development server..."
       - echo "Listening on http://localhost:8080/"
-      - go run github.com/hajimehoshi/wasmserve@latest ./
+      - go run github.com/hajimehoshi/wasmserve@latest ./src
+    silent: true
+  build:wasm:
+    cmds:
+      - echo "Building WASM..."
+      - GOOS=js GOARCH=wasm go build -o ./bin/main.wasm ./src
+    silent: true
+  build:linux:
+    desc: Build for Linux. Dependencies https://ebitengine.org/en/documents/install.html?os=linux
+    cmds:
+      - echo "Building Linux binary..."
+      - GOOS=linux GOARCH=amd64 go build -o ./bin/linux-amd64 ./src
+    silent: true
+  build:windows:
+    cmds:
+      - echo "Building Windows binary..."
+      - GOOS=windows GOARCH=amd64 go build -o ./bin/windows-amd64.exe ./src
+    silent: true
+  build:
+    cmds:
+      - task: build:wasm
+      - task: build:linux
+      - task: build:windows
     silent: true

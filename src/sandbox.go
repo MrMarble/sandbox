@@ -1,47 +1,58 @@
 package main
 
+import (
+	"strconv"
+	"sync"
+
+	cmap "github.com/orcaman/concurrent-map/v2"
+)
+
 type Sandbox struct {
 	width, height   int
 	cWidth, cHeight int
 
 	chunks      []*Chunk
-	chunkLookup map[int]*Chunk
+	chunkLookup cmap.ConcurrentMap[string, *Chunk]
+
+	chunkMutex sync.Mutex
 }
 
-func hash(x, y int) int {
-	return x*31 ^ y
+func hash(x, y int) string {
+	return strconv.Itoa(x*31 ^ y)
 }
+
+const MaxChunks = 8
 
 func NewSandbox(width, height int) *Sandbox {
-	cWidth := width / 4
-	cHeight := height / 4
+	cWidth := width / MaxChunks
+	cHeight := height / MaxChunks
 	return &Sandbox{
 		width:       width,
 		height:      height,
 		cWidth:      cWidth,
 		cHeight:     cHeight,
 		chunks:      []*Chunk{},
-		chunkLookup: map[int]*Chunk{},
+		chunkLookup: cmap.New[*Chunk](),
 	}
 }
 
 func (s *Sandbox) GetChunk(x, y int) *Chunk {
 	cx, cy := s.GetChunkLocation(x, y)
-	if chunk, ok := s.chunkLookup[hash(cx, cy)]; ok {
+	if chunk, ok := s.chunkLookup.Get(hash(cx, cy)); ok {
 		return chunk
 	}
 	return s.CreateChunk(cx, cy)
 }
-
-const MaxChunks = 4
 
 func (s *Sandbox) CreateChunk(x, y int) *Chunk {
 	if x < 0 || y < 0 || x >= MaxChunks || y >= MaxChunks {
 		return nil
 	}
 	chunk := NewChunk(s.cWidth, s.cHeight, x, y)
+	s.chunkMutex.Lock()
 	s.chunks = append(s.chunks, chunk)
-	s.chunkLookup[hash(x, y)] = chunk
+	s.chunkMutex.Unlock()
+	s.chunkLookup.Set(hash(x, y), chunk)
 	return chunk
 }
 
@@ -88,7 +99,7 @@ func (s *Sandbox) RemoveEmptyChunks() {
 	for i := 0; i < len(s.chunks); i++ {
 		chunk := s.chunks[i]
 		if chunk.filledCells == 0 {
-			delete(s.chunkLookup, hash(chunk.x, chunk.y))
+			s.chunkLookup.Remove(hash(chunk.x, chunk.y))
 			s.chunks = append(s.chunks[:i], s.chunks[i+1:]...)
 			i--
 
@@ -98,13 +109,25 @@ func (s *Sandbox) RemoveEmptyChunks() {
 }
 
 func (s *Sandbox) Update() {
+	var wg sync.WaitGroup
 	for _, chunk := range s.chunks {
-		NewWorker(s, chunk).UpdateChunk()
+		wg.Add(1)
+		go func(s *Sandbox, c *Chunk) {
+			NewWorker(s, c).UpdateChunk()
+			wg.Done()
+		}(s, chunk)
 	}
+	wg.Wait()
 
 	for _, chunk := range s.chunks {
-		chunk.ApplyChanges()
+		wg.Add(1)
+		go func(c *Chunk) {
+			c.ApplyChanges()
+			wg.Done()
+		}(chunk)
 	}
+	wg.Wait()
+
 	for _, chunk := range s.chunks {
 		chunk.UpdateRect()
 	}

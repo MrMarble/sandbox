@@ -3,6 +3,7 @@ package main
 import (
 	"math/rand"
 	"sort"
+	"sync"
 )
 
 type Change struct {
@@ -24,6 +25,10 @@ type Chunk struct {
 	filledCells int
 	cells       []Cell
 	changes     []Change
+
+	filledCellsMutex sync.Mutex
+	changesMutex     sync.Mutex
+	dirtyRectMutex   sync.Mutex
 }
 
 func NewChunk(width, height, x, y int) *Chunk {
@@ -43,10 +48,12 @@ func (c *Chunk) KeepAliveAt(i int) {
 	x := i % c.width
 	y := i / c.width
 
+	c.dirtyRectMutex.Lock()
 	c.minXw = clamp(min(x-2, c.minXw), 0, c.width)
 	c.minYw = clamp(min(y-2, c.minYw), 0, c.height)
 	c.maxXw = clamp(max(x+2, c.maxXw), 0, c.width)
 	c.maxYw = clamp(max(y+2, c.maxYw), 0, c.height)
+	c.dirtyRectMutex.Unlock()
 }
 
 func (c *Chunk) UpdateRect() {
@@ -98,16 +105,22 @@ func (c *Chunk) SetCell(x, y int, cell Cell) {
 
 func (c *Chunk) SetCellAt(i int, cell Cell) {
 	if c.cells[i].cType == EMPTY && cell.cType != EMPTY {
+		c.filledCellsMutex.Lock()
 		c.filledCells++
+		c.filledCellsMutex.Unlock()
 	} else if c.cells[i].cType != EMPTY && cell.cType == EMPTY {
+		c.filledCellsMutex.Lock()
 		c.filledCells--
+		c.filledCellsMutex.Unlock()
 	}
 	c.cells[i] = cell
 	c.KeepAliveAt(i)
 }
 
 func (c *Chunk) MoveCell(src *Chunk, x, y, dx, dy int) {
+	c.changesMutex.Lock()
 	c.changes = append(c.changes, Change{dst: c.GetIndex(dx, dy), src: src.GetIndex(x, y), chunk: src})
+	c.changesMutex.Unlock()
 }
 
 func (c *Chunk) ApplyChanges() {
