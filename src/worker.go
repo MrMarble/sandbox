@@ -82,16 +82,18 @@ func (w *Worker) UpdateChunk() {
 			c := w.chunk.GetCellAt(x + y*w.chunk.width)
 			px := x + w.chunk.x*w.chunk.width
 			py := y + w.chunk.y*w.chunk.height
-			if c.cType == EMPTY {
+			if c.cType == AIR {
 				continue
 			}
 			switch c.cType {
 			case SAND:
 				w.MovePowder(px, py, c)
-			case WATER:
+			case WATR:
 				w.MoveLiquid(px, py, c)
-			case STONE:
+			case STNE:
 				w.MoveSolid(px, py, c)
+			case SMKE:
+				w.MoveGas(px, py, c)
 			}
 		}
 	}
@@ -113,6 +115,22 @@ func (s *Worker) MoveLiquid(x, y int, cell *Cell) {
 		s.MoveCell(x, y, x, y+1)
 	} else {
 		xn, yn := s.randomNeighbour(x, y, 1)
+		if xn != -1 && yn != -1 {
+			s.MoveCell(x, y, xn, yn)
+		} else {
+			xn, yn = s.randomNeighbour(x, y, 0)
+			if xn != -1 && yn != -1 {
+				s.MoveCell(x, y, xn, yn)
+			}
+		}
+	}
+}
+
+func (s *Worker) MoveGas(x, y int, cell *Cell) {
+	if s.IsEmpty(x, y-1) && rand.Intn(100) < 50 {
+		s.MoveCell(x, y, x, y-1)
+	} else {
+		xn, yn := s.randomNeighbour(x, y, -1)
 		if xn != -1 && yn != -1 {
 			s.MoveCell(x, y, xn, yn)
 		} else {

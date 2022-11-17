@@ -7,12 +7,30 @@ import "image/color"
 type CellType int
 
 const (
-	EMPTY CellType = iota
+	AIR CellType = iota
 	SAND
-	WATER
+	WATR
 	WALL
-	STONE
+	STNE
+	SMKE
 )
+
+func getColor(cType CellType) string {
+	switch cType {
+	case SAND:
+		return "#c2b280"
+	case WATR:
+		return "#09c3db"
+	case WALL:
+		return "#252525"
+	case STNE:
+		return "#808080"
+	case SMKE:
+		return "#101010"
+	default:
+		return "#000000"
+	}
+}
 
 type Cell struct {
 	cType CellType
@@ -20,22 +38,43 @@ type Cell struct {
 	color color.RGBA
 }
 
-func NewCell(cType CellType) *Cell {
-	clr := color.RGBA{0, 0, 0, 0}
-	switch cType {
-	case SAND:
-		clr = color.RGBA{0xc2, 0xb2, 0x80, 255}
-	case WATER:
-		clr = color.RGBA{0x09, 0xc3, 0xdb, 255}
-	case WALL:
-		clr = color.RGBA{0x10, 0x10, 0x10, 255}
-	case STONE:
-		clr = color.RGBA{0x80, 0x80, 0x80, 255}
+func ParseHexColor(s string) (c color.RGBA) {
+	c.A = 0xff
+
+	hexToByte := func(b byte) byte {
+		switch {
+		case b >= '0' && b <= '9':
+			return b - '0'
+		case b >= 'a' && b <= 'f':
+			return b - 'a' + 10
+		case b >= 'A' && b <= 'F':
+			return b - 'A' + 10
+		}
+		return 0
 	}
-	return &Cell{cType: cType, color: clr}
+
+	switch len(s) {
+	case 7:
+		c.R = hexToByte(s[1])<<4 + hexToByte(s[2])
+		c.G = hexToByte(s[3])<<4 + hexToByte(s[4])
+		c.B = hexToByte(s[5])<<4 + hexToByte(s[6])
+	case 4:
+		c.R = hexToByte(s[1]) * 17
+		c.G = hexToByte(s[2]) * 17
+		c.B = hexToByte(s[3]) * 17
+	default:
+	}
+	return
+}
+
+func NewCell(cType CellType) *Cell {
+	return &Cell{cType: cType, color: ParseHexColor(getColor(cType))}
 }
 
 func (c *Cell) WithVariation(variation byte) *Cell {
+	if c.cType == WALL {
+		return c
+	}
 	c.color.R += variation
 	c.color.G += variation
 	c.color.B += variation

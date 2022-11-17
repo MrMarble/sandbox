@@ -146,7 +146,7 @@ func (s *Sandbox) Draw(pix []byte) {
 			x := i%c.width + c.x*c.width
 			y := i/c.width + c.y*c.height
 			idx := (x + y*screenWidth)
-			if cell.cType == EMPTY {
+			if cell.cType == AIR {
 				pix[idx*4] = 0
 				pix[idx*4+1] = 0
 				pix[idx*4+2] = 0

@@ -88,7 +88,7 @@ func (c *Chunk) IsEmpty(x, y int) bool {
 }
 
 func (c *Chunk) IsEmptyAt(i int) bool {
-	return c.cells[i].cType == EMPTY
+	return c.cells[i].cType == AIR
 }
 
 func (c *Chunk) GetCell(x, y int) *Cell {
@@ -104,11 +104,11 @@ func (c *Chunk) SetCell(x, y int, cell Cell) {
 }
 
 func (c *Chunk) SetCellAt(i int, cell Cell) {
-	if c.cells[i].cType == EMPTY && cell.cType != EMPTY {
+	if c.cells[i].cType == AIR && cell.cType != AIR {
 		c.filledCellsMutex.Lock()
 		c.filledCells++
 		c.filledCellsMutex.Unlock()
-	} else if c.cells[i].cType != EMPTY && cell.cType == EMPTY {
+	} else if c.cells[i].cType != AIR && cell.cType == AIR {
 		c.filledCellsMutex.Lock()
 		c.filledCells--
 		c.filledCellsMutex.Unlock()

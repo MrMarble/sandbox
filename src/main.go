@@ -57,18 +57,6 @@ func (g *Game) HandleInput() {
 		g.brushSize = max(2, g.brushSize-2)
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.Key1) {
-		g.selectedCellType = SAND
-	} else if inpututil.IsKeyJustPressed(ebiten.Key2) {
-		g.selectedCellType = WATER
-	} else if inpututil.IsKeyJustPressed(ebiten.Key3) {
-		g.selectedCellType = WALL
-	} else if inpututil.IsKeyJustPressed(ebiten.Key4) {
-		g.selectedCellType = STONE
-	} else if inpututil.IsKeyJustPressed(ebiten.Key5) {
-		g.selectedCellType = EMPTY
-	}
-
 	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
 		g.pause = !g.pause
 	}
@@ -118,6 +106,41 @@ func (g *Game) Update() error {
 	return nil
 }
 
+func (g *Game) debugInfo(screen *ebiten.Image) {
+	dbg := fmt.Sprintf("FPS: %0.2f\n", ebiten.CurrentFPS())
+
+	if g.debug {
+		dbg += fmt.Sprintf("TPS: %0.2f\n", ebiten.CurrentTPS())
+		dbg += fmt.Sprintf("Chunks: %d\n", len(g.sandbox.chunks))
+		dbg += fmt.Sprintf("X: %d Y: %d\n", g.cursorPos[0], g.cursorPos[1])
+		for _, chunk := range g.sandbox.chunks {
+			rect(screen, chunk.x*chunk.width, chunk.y*chunk.height, chunk.width, chunk.height, color.RGBA{100, 0, 0, 100}, false)
+			if chunk.maxX > 0 {
+				rect(screen, chunk.x*chunk.width+chunk.minX, chunk.y*chunk.height+chunk.minY, chunk.maxX-chunk.minX, chunk.maxY-chunk.minY, color.RGBA{0, 100, 0, 100}, false)
+			}
+		}
+	}
+	ebitenutil.DebugPrint(screen, dbg)
+
+}
+
+func (g *Game) UI(screen *ebiten.Image) {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if g.cursorPos[1] > screenHeight-20 {
+			idx := int(math.Floor(float64(g.cursorPos[0]) / 30))
+			if idx < 0 || idx > len(_CellType_index)-1 {
+				return
+			}
+			fmt.Println("Selected", CellType(idx), "at", idx)
+			g.selectedCellType = CellType(idx)
+		}
+	}
+
+	for i := 0; i < len(_CellType_index)-1; i++ {
+		button(screen, CellType(i).String(), 5+30*i, screenHeight-18, ParseHexColor(getColor(CellType(i))), g.selectedCellType == CellType(i))
+	}
+}
+
 func (g *Game) Draw(screen *ebiten.Image) {
 	if g.pixels == nil {
 		fmt.Println("init")
@@ -126,38 +149,19 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	g.sandbox.Draw(g.pixels)
 	screen.WritePixels(g.pixels)
-	rect(screen, g.cursorPos[0]-g.brushSize/2, g.cursorPos[1]-g.brushSize/2, g.brushSize, g.brushSize, color.White)
-	// DEBUG
-	if g.debug {
-		for _, chunk := range g.sandbox.chunks {
-			rect(screen, chunk.x*chunk.width, chunk.y*chunk.height, chunk.width, chunk.height, color.RGBA{100, 0, 0, 100})
-			if chunk.maxX > 0 {
-				rect(screen, chunk.x*chunk.width+chunk.minX, chunk.y*chunk.height+chunk.minY, chunk.maxX-chunk.minX, chunk.maxY-chunk.minY, color.RGBA{0, 100, 0, 100})
-
-			}
-		}
-	}
-
-	dbg := fmt.Sprintf("Brush size: %d\n", g.brushSize)
-	dbg += fmt.Sprintf("Cell type: %s\n", g.selectedCellType)
-	dbg += fmt.Sprintf("Pause: %v\n", g.pause)
-	if g.debug {
-		dbg += fmt.Sprintf("TPS: %0.2f\n", ebiten.CurrentTPS())
-		dbg += fmt.Sprintf("FPS: %0.2f\n", ebiten.CurrentFPS())
-		dbg += fmt.Sprintf("Chunks: %d\n", len(g.sandbox.chunks))
-		dbg += fmt.Sprintf("ChunksL: %d\n", g.sandbox.chunkLookup.Count())
-	}
-	ebitenutil.DebugPrint(screen, dbg)
-
+	rect(screen, g.cursorPos[0]-g.brushSize/2, g.cursorPos[1]-g.brushSize/2, g.brushSize, g.brushSize, color.White, false)
+	g.debugInfo(screen)
+	g.UI(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return screenWidth, screenHeight
+	s := ebiten.DeviceScaleFactor()
+	return screenWidth * int(s), screenHeight * int(s)
 }
 
 func main() {
 	g := &Game{
-		sandbox:          NewSandbox(screenWidth, screenHeight),
+		sandbox:          NewSandbox(screenWidth, screenHeight-20),
 		selectedCellType: SAND,
 		brushSize:        10,
 	}
@@ -195,7 +199,7 @@ func (g *Game) placeParticles() {
 			for x := p1x - (g.brushSize / 2); x < (p1x + g.brushSize/2); x++ {
 				for y := p1y - (g.brushSize / 2); y < (p1y + g.brushSize/2); y++ {
 					if x >= 0 && x < screenWidth && y >= 0 && y < screenHeight {
-						if g.selectedCellType == EMPTY || g.sandbox.IsEmpty(x, y) {
+						if g.selectedCellType == AIR || g.sandbox.IsEmpty(x, y) {
 							variable := byte(rand.Intn(20))
 							g.sandbox.SetCell(x, y, *NewCell(g.selectedCellType).WithVariation(variable))
 						}
