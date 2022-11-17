@@ -105,6 +105,16 @@ func (s *Sandbox) Update() {
 	for _, chunk := range s.chunks {
 		chunk.ApplyChanges()
 	}
+	for _, chunk := range s.chunks {
+		chunk.UpdateRect()
+	}
+}
+
+func (s *Sandbox) KeepAlive(x, y int) {
+	chunk := s.GetChunk(x, y)
+	if chunk != nil {
+		chunk.KeepAlive(x, y)
+	}
 }
 
 func (s *Sandbox) Draw(pix []byte) {

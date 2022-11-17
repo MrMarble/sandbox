@@ -14,6 +14,13 @@ type Chunk struct {
 	width, height int
 	x, y          int
 
+	// Dirty rect
+	minX, minY int
+	maxX, maxY int
+	// Working dirty rect
+	minXw, minYw int
+	maxXw, maxYw int
+
 	filledCells int
 	cells       []Cell
 	changes     []Change
@@ -27,6 +34,31 @@ func NewChunk(width, height, x, y int) *Chunk {
 		y:      y,
 		cells:  make([]Cell, width*height),
 	}
+}
+
+func (c *Chunk) KeepAlive(x, y int) {
+	c.KeepAliveAt(c.GetIndex(x, y))
+}
+func (c *Chunk) KeepAliveAt(i int) {
+	x := i % c.width
+	y := i / c.width
+
+	c.minXw = clamp(min(x-2, c.minXw), 0, c.width)
+	c.minYw = clamp(min(y-2, c.minYw), 0, c.height)
+	c.maxXw = clamp(max(x+2, c.maxXw), 0, c.width)
+	c.maxYw = clamp(max(y+2, c.maxYw), 0, c.height)
+}
+
+func (c *Chunk) UpdateRect() {
+	c.minX = c.minXw
+	c.minY = c.minYw
+	c.maxX = c.maxXw
+	c.maxY = c.maxYw
+
+	c.minXw = c.width
+	c.minYw = c.height
+	c.maxXw = -1
+	c.maxYw = -1
 }
 
 // GetIndex returns the index of the cell at the given coordinates.
@@ -71,6 +103,7 @@ func (c *Chunk) SetCellAt(i int, cell Cell) {
 		c.filledCells--
 	}
 	c.cells[i] = cell
+	c.KeepAliveAt(i)
 }
 
 func (c *Chunk) MoveCell(src *Chunk, x, y, dx, dy int) {

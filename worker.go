@@ -1,6 +1,8 @@
 package main
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 type Worker struct {
 	chunk   *Chunk
@@ -41,6 +43,32 @@ func (w *Worker) SetCell(x, y int, cell Cell) {
 }
 
 func (w *Worker) MoveCell(x, y, dx, dy int) {
+	pingX := 0
+	pingY := 0
+	//fmt.Println("Moving cell from", x, y, "to", dx, dy, "in chunk", w.chunk.x, w.chunk.y)
+	if x == w.chunk.x*w.chunk.width {
+		pingX = -1
+	}
+	if x == w.chunk.x*w.chunk.width+w.chunk.width-1 {
+		pingX = 1
+	}
+	if y == w.chunk.y*w.chunk.height {
+		pingY = -1
+	}
+	if y == w.chunk.y*w.chunk.height+w.chunk.height-1 {
+		pingY = 1
+	}
+
+	if pingX != 0 {
+		w.sandbox.KeepAlive(x+pingX, y)
+	}
+	if pingY != 0 {
+		w.sandbox.KeepAlive(x, y+pingY)
+	}
+	if pingX != 0 && pingY != 0 {
+		w.sandbox.KeepAlive(x+pingX, y+pingY)
+	}
+
 	if w.chunk.InBounds(x, y) && w.chunk.InBounds(dx, dy) {
 		w.chunk.MoveCell(w.chunk, x, y, dx, dy)
 	} else {
@@ -49,8 +77,8 @@ func (w *Worker) MoveCell(x, y, dx, dy int) {
 }
 
 func (w *Worker) UpdateChunk() {
-	for y := 0; y < w.chunk.height; y++ {
-		for x := 0; x < w.chunk.width; x++ {
+	for x := w.chunk.minX; x < w.chunk.maxX; x++ {
+		for y := w.chunk.minY; y < w.chunk.maxY; y++ {
 			c := w.chunk.GetCellAt(x + y*w.chunk.width)
 			px := x + w.chunk.x*w.chunk.width
 			py := y + w.chunk.y*w.chunk.height

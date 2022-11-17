@@ -83,6 +83,16 @@ func min[T constraints.Ordered](a, b T) T {
 	return b
 }
 
+func clamp[T constraints.Ordered](x, min, max T) T {
+	if x < min {
+		return min
+	}
+	if x > max {
+		return max
+	}
+	return x
+}
+
 func (g *Game) Update() error {
 	g.updateCursor()
 	g.HandleInput()
@@ -104,6 +114,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// DEBUG
 	for _, chunk := range g.sanbox.chunks {
 		rect(screen, chunk.x*chunk.width, chunk.y*chunk.height, chunk.width, chunk.height)
+		if chunk.maxX > 0 {
+			rect(screen, chunk.x*chunk.width+chunk.minX, chunk.y*chunk.height+chunk.minY, chunk.maxX-chunk.minX, chunk.maxY-chunk.minY)
+
+		}
 	}
 	dbg := fmt.Sprintf("TPS: %0.2f\n", ebiten.CurrentTPS())
 	dbg += fmt.Sprintf("FPS: %0.2f\n", ebiten.CurrentFPS())
