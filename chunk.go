@@ -1,0 +1,106 @@
+package main
+
+import (
+	"math/rand"
+	"sort"
+)
+
+type Change struct {
+	dst, src int
+	chunk    *Chunk
+}
+
+type Chunk struct {
+	width, height int
+	x, y          int
+
+	cells   []Cell
+	changes []Change
+}
+
+func NewChunk(width, height, x, y int) *Chunk {
+	return &Chunk{
+		width:  width,
+		height: height,
+		x:      x,
+		y:      y,
+		cells:  make([]Cell, width*height),
+	}
+}
+
+// GetIndex returns the index of the cell at the given coordinates.
+func (c *Chunk) GetIndex(x, y int) int {
+	return (x - c.x*c.width) + (y-c.y*c.height)*c.width
+}
+
+func (c *Chunk) InBounds(x, y int) bool {
+	left := c.x * c.width
+	right := left + c.width
+	top := c.y * c.height
+	bottom := top + c.height
+
+	return x >= left && x < right &&
+		y >= top && y < bottom
+}
+
+func (c *Chunk) IsEmpty(x, y int) bool {
+	return c.InBounds(x, y) && c.IsEmptyAt(c.GetIndex(x, y))
+}
+
+func (c *Chunk) IsEmptyAt(i int) bool {
+	return c.cells[i].cType == EMPTY
+}
+
+func (c *Chunk) GetCell(x, y int) *Cell {
+	return c.GetCellAt(c.GetIndex(x, y))
+}
+
+func (c *Chunk) GetCellAt(i int) *Cell {
+	return &c.cells[i]
+}
+
+func (c *Chunk) SetCell(x, y int, cell Cell) {
+	c.SetCellAt(c.GetIndex(x, y), cell)
+}
+
+func (c *Chunk) SetCellAt(i int, cell Cell) {
+	c.cells[i] = cell
+}
+
+func (c *Chunk) MoveCell(src *Chunk, x, y, dx, dy int) {
+	c.changes = append(c.changes, Change{dst: c.GetIndex(dx, dy), src: src.GetIndex(x, y), chunk: src})
+}
+
+func (c *Chunk) ApplyChanges() {
+	// remove changes that have the destination cell occupied
+	for i := 0; i < len(c.changes); i++ {
+		if !c.IsEmptyAt(c.changes[i].dst) {
+			c.changes = append(c.changes[:i], c.changes[i+1:]...)
+			i--
+		}
+	}
+
+	// sort changes by destination index
+	sort.Slice(c.changes, func(i, j int) bool {
+		return c.changes[i].dst < c.changes[j].dst
+	})
+
+	// pick random source for each destination
+	iPrev := 0
+	c.changes = append(c.changes, Change{-1, -1, nil}) // catch the last one
+	for i := 0; i < len(c.changes)-1; i++ {
+		if c.changes[i+1].dst != c.changes[i].dst {
+			rng := rand.Intn(i-iPrev+1) + iPrev
+
+			dst := c.changes[rng].dst
+			src := c.changes[rng].src
+			chunk := c.changes[rng].chunk
+
+			c.SetCellAt(dst, *chunk.GetCellAt(src))
+			chunk.SetCellAt(src, Cell{})
+
+			iPrev = i + 1
+		}
+	}
+	c.changes = c.changes[:0]
+}

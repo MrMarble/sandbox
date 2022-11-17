@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 	"log"
 	"math"
 	"math/rand"
@@ -101,10 +100,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	g.sanbox.Draw(g.pixels)
 	screen.WritePixels(g.pixels)
-	//TODO: Change to custom path
-	curX, curY := ebiten.CursorPosition()
-	ebitenutil.DrawRect(screen, float64(curX-g.brushSize/2), float64(curY-g.brushSize/2), float64(g.brushSize), float64(g.brushSize), color.White)
+	rect(screen, g.cursorPos[0]-g.brushSize/2, g.cursorPos[1]-g.brushSize/2, g.brushSize, g.brushSize)
 	// DEBUG
+	for _, chunk := range g.sanbox.chunks {
+		rect(screen, chunk.x*chunk.width, chunk.y*chunk.height, chunk.width, chunk.height)
+	}
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nType: %d", ebiten.ActualTPS(), ebiten.ActualFPS(), g.selectedCellType))
 }
 

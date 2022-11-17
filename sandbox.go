@@ -2,118 +2,133 @@ package main
 
 import (
 	"math/rand"
-	"sort"
 )
 
 type Sandbox struct {
-	width, height int
-	cells         []Cell
-	changes       [][2]int // dst, src
+	width, height   int
+	cWidth, cHeight int
+
+	chunks      []*Chunk
+	chunkLookup map[int]*Chunk
 }
 
 func NewSandbox(width, height int) *Sandbox {
+	cWidth := width / 4
+	cHeight := height / 4
 	return &Sandbox{
-		width:  width,
-		height: height,
-		cells:  make([]Cell, width*height),
+		width:       width,
+		height:      height,
+		cWidth:      cWidth,
+		cHeight:     cHeight,
+		chunks:      []*Chunk{},
+		chunkLookup: map[int]*Chunk{},
 	}
 }
 
-// GetIndex returns the index of the cell at the given coordinates.
-func (s *Sandbox) GetIndex(x, y int) int {
-	return x + y*s.width
+func (s *Sandbox) GetChunk(x, y int) *Chunk {
+	cx, cy := s.GetChunkLocation(x, y)
+	if chunk, ok := s.chunkLookup[cy*s.cWidth+cx]; ok {
+		return chunk
+	}
+	return s.CreateChunk(cx, cy)
 }
 
-func (s *Sandbox) GetCell(x, y int) *Cell {
-	return s.GetCellAt(s.GetIndex(x, y))
+const MaxChunks = 4
+
+func (s *Sandbox) CreateChunk(x, y int) *Chunk {
+	if x < 0 || y < 0 || x >= MaxChunks || y >= MaxChunks {
+		return nil
+	}
+	chunk := NewChunk(s.cWidth, s.cHeight, x, y)
+	s.chunks = append(s.chunks, chunk)
+	s.chunkLookup[y*s.cWidth+x] = chunk
+	return chunk
 }
 
-func (s *Sandbox) GetCellAt(i int) *Cell {
-	return &s.cells[i]
+func (s *Sandbox) GetChunkLocation(x, y int) (int, int) {
+	return x / s.cWidth, y / s.cHeight
 }
 
 func (s *Sandbox) InBounds(x, y int) bool {
-	return x >= 0 && x < s.width && y >= 0 && y < s.height
+	chunk := s.GetChunk(x, y)
+	if chunk != nil {
+		return chunk.InBounds(x, y)
+	}
+	return false
 }
 
 func (s *Sandbox) IsEmpty(x, y int) bool {
-	return s.InBounds(x, y) && s.GetCell(x, y).cType == EMPTY
+	return s.InBounds(x, y) && s.GetChunk(x, y).IsEmpty(x, y)
 }
 
-func (s *Sandbox) SetCell(x, y int, c Cell) {
-	s.cells[s.GetIndex(x, y)] = c
-}
-
-func (s *Sandbox) MoveCell(x, y, dx, dy int) {
-	s.changes = append(s.changes, [2]int{s.GetIndex(dx, dy), s.GetIndex(x, y)})
-}
-
-func (s *Sandbox) ApplyChanges() {
-	// remove changes that have the destination cell occupied
-	for i := 0; i < len(s.changes); i++ {
-		if s.cells[s.changes[i][0]].cType != EMPTY {
-			s.changes = append(s.changes[:i], s.changes[i+1:]...)
-			i--
-		}
+func (s *Sandbox) GetCell(x, y int) *Cell {
+	chunk := s.GetChunk(x, y)
+	if chunk != nil {
+		return chunk.GetCell(x, y)
 	}
+	return nil
+}
 
-	// sort changes by destination index
-	sort.Slice(s.changes, func(i, j int) bool {
-		return s.changes[i][0] < s.changes[j][0]
-	})
-
-	// pick random source for each destination
-	iPrev := 0
-	s.changes = append(s.changes, [2]int{-1, -1}) // catch the last one
-	for i := 0; i < len(s.changes)-1; i++ {
-		if s.changes[i+1][0] != s.changes[i][0] {
-			rng := rand.Intn(i-iPrev+1) + iPrev
-
-			dst := s.changes[rng][0]
-			src := s.changes[rng][1]
-
-			s.cells[dst] = s.cells[src]
-			s.cells[src] = Cell{}
-
-			iPrev = i + 1
-		}
+func (s *Sandbox) SetCell(x, y int, cell Cell) {
+	chunk := s.GetChunk(x, y)
+	if chunk != nil {
+		chunk.SetCell(x, y, cell)
 	}
-	s.changes = [][2]int{}
+}
+
+func (s *Sandbox) MoveCell(x, y, xn, yn int) {
+	src := s.GetChunk(x, y)
+	dst := s.GetChunk(xn, yn)
+	if src != nil && dst != nil {
+		dst.MoveCell(src, x, y, xn, yn)
+	}
 }
 
 func (s *Sandbox) Update() {
-	for y := 0; y < s.height; y++ {
-		for x := 0; x < s.width; x++ {
-			c := s.GetCell(x, y)
-			if c.cType == EMPTY {
-				continue
-			}
-			switch c.cType {
-			case SAND:
-				s.MovePowder(x, y, c)
-			case WATER:
-				s.MoveLiquid(x, y, c)
-			case STONE:
-				s.MoveSolid(x, y, c)
+	for _, chunk := range s.chunks {
+		for y := 0; y < chunk.height; y++ {
+			for x := 0; x < chunk.width; x++ {
+				c := chunk.GetCellAt(x + y*chunk.width)
+				px := x + chunk.x*chunk.width
+				py := y + chunk.y*chunk.height
+				if c.cType == EMPTY {
+					continue
+				}
+				switch c.cType {
+				case SAND:
+					s.MovePowder(px, py, c)
+				case WATER:
+					s.MoveLiquid(px, py, c)
+				case STONE:
+					s.MoveSolid(px, py, c)
+				}
 			}
 		}
 	}
-	s.ApplyChanges()
+
+	for _, chunk := range s.chunks {
+		chunk.ApplyChanges()
+	}
 }
 
 func (s *Sandbox) Draw(pix []byte) {
-	for i, c := range s.cells {
-		if c.cType == EMPTY {
-			pix[i*4] = 0
-			pix[i*4+1] = 0
-			pix[i*4+2] = 0
-			pix[i*4+3] = 0
-			continue
+	for _, c := range s.chunks {
+		for i, cell := range c.cells {
+			x := i%c.width + c.x*c.width
+			y := i/c.width + c.y*c.height
+			idx := (x + y*screenWidth)
+			if cell.cType == EMPTY {
+				pix[idx*4] = 0
+				pix[idx*4+1] = 0
+				pix[idx*4+2] = 0
+				pix[idx*4+3] = 0
+				continue
+			}
+			pix[idx*4] = cell.color.R
+			pix[idx*4+1] = cell.color.G
+			pix[idx*4+2] = cell.color.B
+			pix[idx*4+3] = cell.color.A
 		}
-		pix[i*4] = c.color.R
-		pix[i*4+1] = c.color.G
-		pix[i*4+2] = c.color.B
-		pix[i*4+3] = c.color.A
 	}
 }
 
