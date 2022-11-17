@@ -200,8 +200,7 @@ func (g *Game) placeParticles() {
 				for y := p1y - (g.brushSize / 2); y < (p1y + g.brushSize/2); y++ {
 					if x >= 0 && x < screenWidth && y >= 0 && y < screenHeight {
 						if g.selectedCellType == AIR || g.sandbox.IsEmpty(x, y) {
-							variable := byte(rand.Intn(20))
-							g.sandbox.SetCell(x, y, *NewCell(g.selectedCellType).WithVariation(variable))
+							g.sandbox.SetCell(x, y, *NewCell(g.selectedCellType))
 						}
 					}
 				}

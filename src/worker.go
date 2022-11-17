@@ -1,9 +1,5 @@
 package main
 
-import (
-	"math/rand"
-)
-
 type Worker struct {
 	chunk   *Chunk
 	sandbox *Sandbox
@@ -92,7 +88,7 @@ func (w *Worker) UpdateChunk() {
 				w.MoveLiquid(px, py, c)
 			case STNE:
 				w.MoveSolid(px, py, c)
-			case SMKE:
+			case SMKE, STEM:
 				w.MoveGas(px, py, c)
 			}
 		}
@@ -111,98 +107,65 @@ func (w *Worker) UpdateChunkState() {
 			switch c.cType {
 			case SMKE:
 				w.UpdateSmoke(px, py)
+			case STEM:
+				w.UpdateSteam(px, py)
+			case WATR:
+				w.UpdateWater(px, py)
+			case SAND:
+				w.UpdateSand(px, py)
 			}
 		}
 	}
 }
 
-func (s *Worker) UpdateSmoke(x, y int) {
-	cell := s.GetCell(x, y)
-	if cell.extraData1 == 0 {
-		cell.extraData2--
-		if cell.extraData2 == 0 {
-			s.SetCell(x, y, Cell{cType: AIR})
-		}
-	} else {
-		cell.extraData1--
-	}
-}
+func (w *Worker) UpdateChunkTemp() {
+	for x := w.chunk.minX; x < w.chunk.maxX; x++ {
+		for y := w.chunk.minY; y < w.chunk.maxY; y++ {
+			c := w.chunk.GetCellAt(x + y*w.chunk.width)
+			px := x + w.chunk.x*w.chunk.width
+			py := y + w.chunk.y*w.chunk.height
+			if c.cType == AIR || c.temp == 0 {
+				continue
+			}
+			temp := c.temp
+			conductivity := c.ThermalConductivity()
 
-func (s *Worker) MovePowder(x, y int, cell *Cell) {
-	if s.IsEmpty(x, y+1) {
-		s.MoveCell(x, y, x, y+1)
-	} else {
-		xn, yn := s.randomNeighbour(x, y, 1)
-		if xn != -1 && yn != -1 {
-			s.MoveCell(x, y, xn, yn)
-		}
-	}
-}
-
-func (s *Worker) MoveLiquid(x, y int, cell *Cell) {
-	if s.IsEmpty(x, y+1) {
-		s.MoveCell(x, y, x, y+1)
-	} else {
-		xn, yn := s.randomNeighbour(x, y, 1)
-		if xn != -1 && yn != -1 {
-			s.MoveCell(x, y, xn, yn)
-		} else {
-			xn, yn = s.randomNeighbour(x, y, 0)
-			if xn != -1 && yn != -1 {
-				s.MoveCell(x, y, xn, yn)
+			if w.InBounds(px, py+1) {
+				other := w.GetCell(px, py+1)
+				if other != nil && other.temp != 0 {
+					tc := conductivity + other.ThermalConductivity()
+					t := temp / tc
+					c.temp -= t
+					other.temp += t
+				}
+			}
+			if w.InBounds(px, py-1) {
+				other := w.GetCell(px, py-1)
+				if other != nil && other.temp != 0 {
+					tc := conductivity + other.ThermalConductivity()
+					t := temp / tc
+					c.temp -= t
+					other.temp += t
+				}
+			}
+			if w.InBounds(px+1, py) {
+				other := w.GetCell(px+1, py)
+				if other != nil && other.temp != 0 {
+					tc := conductivity + other.ThermalConductivity()
+					t := temp / tc
+					c.temp -= t
+					other.temp += t
+				}
+			}
+			if w.InBounds(px-1, py) {
+				other := w.GetCell(px-1, py)
+				if other != nil && other.temp != 0 {
+					tc := conductivity + other.ThermalConductivity()
+					t := temp / tc
+					c.temp -= t
+					other.temp += t
+				}
 			}
 		}
 	}
-}
-
-func (s *Worker) MoveGas(x, y int, cell *Cell) {
-	if s.IsEmpty(x, y-1) && rand.Intn(100) < 50 {
-		s.MoveCell(x, y, x, y-1)
-	} else {
-		xn, yn := s.randomNeighbour(x, y, -1)
-		if xn != -1 && yn != -1 {
-			s.MoveCell(x, y, xn, yn)
-		} else {
-			xn, yn = s.randomNeighbour(x, y, 0)
-			if xn != -1 && yn != -1 {
-				s.MoveCell(x, y, xn, yn)
-			}
-		}
-	}
-}
-
-func (s *Worker) MoveSolid(x, y int, cell *Cell) {
-	if s.IsEmpty(x, y+1) {
-		s.MoveCell(x, y, x, y+1)
-	}
-}
-
-func (s *Worker) randomNeighbour(x, y, yOffset int) (int, int) {
-
-	// check if left is air
-	leftFree := false
-	if s.InBounds(x-1, y+yOffset) && s.IsEmpty(x-1, y) && s.IsEmpty(x-1, y+yOffset) {
-		leftFree = true
-	}
-
-	// check if right is air
-	rightFree := false
-	if s.InBounds(x+1, y+yOffset); s.IsEmpty(x+1, y) && s.IsEmpty(x+1, y+yOffset) {
-		rightFree = true
-	}
-
-	if leftFree || rightFree {
-		if leftFree && rightFree {
-			if rand.Intn(2) == 1 {
-				return x - 1, y + yOffset
-			}
-			return x + 1, y + yOffset
-		} else if leftFree {
-			return x - 1, y + yOffset
-		} else {
-			return x + 1, y + yOffset
-		}
-	}
-	return -1, -1
-
 }

@@ -133,6 +133,18 @@ func (s *Sandbox) MoveUpdate() {
 	}
 }
 
+func (s *Sandbox) TempUpdate() {
+	var wg sync.WaitGroup
+	for _, chunk := range s.chunks {
+		wg.Add(1)
+		go func(s *Sandbox, c *Chunk) {
+			NewWorker(s, c).UpdateChunkTemp()
+			wg.Done()
+		}(s, chunk)
+	}
+	wg.Wait()
+}
+
 func (s *Sandbox) StateUpdate() {
 	var wg sync.WaitGroup
 	for _, chunk := range s.chunks {
@@ -147,6 +159,7 @@ func (s *Sandbox) StateUpdate() {
 
 func (s *Sandbox) Update() {
 	s.MoveUpdate()
+	s.TempUpdate()
 	s.StateUpdate()
 }
 
@@ -170,9 +183,13 @@ func (s *Sandbox) Draw(pix []byte) {
 				pix[idx*4+3] = 0
 				continue
 			}
-			pix[idx*4] = cell.color.R
-			pix[idx*4+1] = cell.color.G
-			pix[idx*4+2] = cell.color.B
+			r := int(cell.color.R) + cell.colorOffset
+			g := int(cell.color.G) + cell.colorOffset
+			b := int(cell.color.B) + cell.colorOffset
+
+			pix[idx*4] = uint8(clamp(r, 0, 255))
+			pix[idx*4+1] = uint8(clamp(g, 0, 255))
+			pix[idx*4+2] = uint8(clamp(b, 0, 255))
 			pix[idx*4+3] = cell.color.A
 		}
 	}

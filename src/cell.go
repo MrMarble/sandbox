@@ -16,6 +16,7 @@ const (
 	WALL
 	STNE
 	SMKE
+	STEM
 )
 
 func getColor(cType CellType) string {
@@ -23,13 +24,15 @@ func getColor(cType CellType) string {
 	case SAND:
 		return "#c2b280"
 	case WATR:
-		return "#09c3db"
+		return "#07a9be"
 	case WALL:
 		return "#252525"
 	case STNE:
 		return "#808080"
 	case SMKE:
 		return "#101010"
+	case STEM:
+		return "#ADD8E6"
 	default:
 		return "#000000"
 	}
@@ -38,8 +41,10 @@ func getColor(cType CellType) string {
 type Cell struct {
 	cType CellType
 
-	color color.RGBA
+	color       color.RGBA
+	colorOffset int
 
+	temp       int
 	extraData1 int
 	extraData2 int
 }
@@ -74,25 +79,32 @@ func ParseHexColor(s string) (c color.RGBA) {
 }
 
 func NewCell(cType CellType) *Cell {
+	cell := &Cell{
+		cType:       cType,
+		color:       ParseHexColor(getColor(cType)),
+		colorOffset: rand.Intn(20) + -10,
+	}
 	switch cType {
 	case SMKE:
-		return &Cell{
-			cType:      cType,
-			color:      ParseHexColor(getColor(cType)),
-			extraData1: 90 + (rand.Intn(40) + -20),
-			extraData2: 90,
-		}
-	default:
-		return &Cell{cType: cType, color: ParseHexColor(getColor(cType))}
+		cell.extraData1 = 90 + (rand.Intn(40) + -20)
+		cell.extraData2 = 90
+	case STEM:
+		cell.temp = 100
 	}
+	return cell
 }
 
-func (c *Cell) WithVariation(variation byte) *Cell {
-	if c.cType == WALL {
-		return c
+func (c *Cell) ThermalConductivity() int {
+	switch c.cType {
+	case SAND:
+		return 3
+	case WATR:
+		return 5
+	case STNE:
+		return 1
+	case STEM, SMKE:
+		return 6
+	default:
+		return 0
 	}
-	c.color.R += variation
-	c.color.G += variation
-	c.color.B += variation
-	return c
 }
