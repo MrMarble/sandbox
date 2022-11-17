@@ -13,11 +13,8 @@ var (
 	subImage   = whiteImage.SubImage(image.Rect(1, 1, 2, 2)).(*ebiten.Image)
 )
 
-func init() {
-	whiteImage.Fill(color.White)
-}
-
-func rect(image *ebiten.Image, x, y, w, h int) {
+func rect(image *ebiten.Image, x, y, w, h int, color color.Color) {
+	whiteImage.Fill(color)
 	var path vector.Path
 	var vs []ebiten.Vertex
 	var is []uint16

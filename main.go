@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"log"
 	"math"
 	"math/rand"
@@ -110,12 +111,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	g.sanbox.Draw(g.pixels)
 	screen.WritePixels(g.pixels)
-	rect(screen, g.cursorPos[0]-g.brushSize/2, g.cursorPos[1]-g.brushSize/2, g.brushSize, g.brushSize)
+	rect(screen, g.cursorPos[0]-g.brushSize/2, g.cursorPos[1]-g.brushSize/2, g.brushSize, g.brushSize, color.White)
 	// DEBUG
 	for _, chunk := range g.sanbox.chunks {
-		rect(screen, chunk.x*chunk.width, chunk.y*chunk.height, chunk.width, chunk.height)
+		rect(screen, chunk.x*chunk.width, chunk.y*chunk.height, chunk.width, chunk.height, color.RGBA{100, 0, 0, 100})
 		if chunk.maxX > 0 {
-			rect(screen, chunk.x*chunk.width+chunk.minX, chunk.y*chunk.height+chunk.minY, chunk.maxX-chunk.minX, chunk.maxY-chunk.minY)
+			rect(screen, chunk.x*chunk.width+chunk.minX, chunk.y*chunk.height+chunk.minY, chunk.maxX-chunk.minX, chunk.maxY-chunk.minY, color.RGBA{0, 100, 0, 100})
 
 		}
 	}
