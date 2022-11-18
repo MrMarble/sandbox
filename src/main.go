@@ -8,9 +8,11 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/hajimehoshi/bitmapfont"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/exp/constraints"
 )
 
@@ -69,6 +71,17 @@ func (g *Game) HandleInput() {
 		g.sandbox = NewSandbox(screenWidth, screenHeight)
 		g.pixels = make([]byte, screenWidth*screenHeight*4)
 	}
+
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if g.cursorPos[1] > screenHeight-20 {
+			idx := int(math.Floor(float64(g.cursorPos[0]) / 30))
+			if idx < 0 || idx > len(_CellType_index)-1 {
+				return
+			}
+			fmt.Println("Selected", CellType(idx), "at", idx)
+			g.selectedCellType = CellType(idx)
+		}
+	}
 }
 
 func max[T constraints.Ordered](a, b T) T {
@@ -112,9 +125,15 @@ func (g *Game) debugInfo(screen *ebiten.Image) {
 	if g.debug {
 		dbg += fmt.Sprintf("TPS: %0.2f\n", ebiten.CurrentTPS())
 		dbg += fmt.Sprintf("Chunks: %d\n", len(g.sandbox.chunks))
+		dbg += fmt.Sprintf("ChunksL: %d\n", g.sandbox.chunkLookup.Count())
+		cell := g.sandbox.GetCell(g.cursorPos[0], g.cursorPos[1])
+		if cell != nil {
+			dbg += fmt.Sprintf("Particle: %s\n", cell.cType)
+		}
 		dbg += fmt.Sprintf("X: %d Y: %d\n", g.cursorPos[0], g.cursorPos[1])
 		for _, chunk := range g.sandbox.chunks {
 			rect(screen, chunk.x*chunk.width, chunk.y*chunk.height, chunk.width, chunk.height, color.RGBA{100, 0, 0, 100}, false)
+			text.Draw(screen, fmt.Sprintf("%d,%d\n%s", chunk.x, chunk.y, hash(chunk.x, chunk.y)), bitmapfont.Gothic12r, chunk.x*chunk.width+12, chunk.y*chunk.height+12, color.White)
 			if chunk.maxX > 0 {
 				rect(screen, chunk.x*chunk.width+chunk.minX, chunk.y*chunk.height+chunk.minY, chunk.maxX-chunk.minX, chunk.maxY-chunk.minY, color.RGBA{0, 100, 0, 100}, false)
 			}
@@ -124,18 +143,7 @@ func (g *Game) debugInfo(screen *ebiten.Image) {
 
 }
 
-func (g *Game) UI(screen *ebiten.Image) {
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if g.cursorPos[1] > screenHeight-20 {
-			idx := int(math.Floor(float64(g.cursorPos[0]) / 30))
-			if idx < 0 || idx > len(_CellType_index)-1 {
-				return
-			}
-			fmt.Println("Selected", CellType(idx), "at", idx)
-			g.selectedCellType = CellType(idx)
-		}
-	}
-
+func (g *Game) DrawUI(screen *ebiten.Image) {
 	for i := 0; i < len(_CellType_index)-1; i++ {
 		button(screen, CellType(i).String(), 5+30*i, screenHeight-18, ParseHexColor(getColor(CellType(i))), g.selectedCellType == CellType(i))
 	}
@@ -151,7 +159,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.WritePixels(g.pixels)
 	rect(screen, g.cursorPos[0]-g.brushSize/2, g.cursorPos[1]-g.brushSize/2, g.brushSize, g.brushSize, color.White, false)
 	g.debugInfo(screen)
-	g.UI(screen)
+	g.DrawUI(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -165,8 +173,8 @@ func main() {
 		selectedCellType: SAND,
 		brushSize:        10,
 	}
-
-	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
+	ebiten.SetTPS(120)
+	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Sandbox")
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)

@@ -18,7 +18,7 @@ type Sandbox struct {
 }
 
 func hash(x, y int) string {
-	return strconv.Itoa(x*31 ^ y)
+	return strconv.Itoa(x*0xf1f1f1f1 ^ y)
 }
 
 const MaxChunks = 8
@@ -100,11 +100,22 @@ func (s *Sandbox) RemoveEmptyChunks() {
 		chunk := s.chunks[i]
 		if chunk.filledCells == 0 {
 			s.chunkLookup.Remove(hash(chunk.x, chunk.y))
+			s.chunkMutex.Lock()
 			s.chunks = append(s.chunks[:i], s.chunks[i+1:]...)
+			s.chunkMutex.Unlock()
 			i--
 
 			chunk = nil
+		} else {
+			if chunk != nil {
+				if !s.chunkLookup.Has(hash(chunk.x, chunk.y)) {
+					s.chunkMutex.Lock()
+					s.chunks = append(s.chunks[:i], s.chunks[i+1:]...)
+					s.chunkMutex.Unlock()
+				}
+			}
 		}
+
 	}
 }
 
