@@ -194,9 +194,26 @@ func (s *Sandbox) Draw(pix []byte) {
 				pix[idx*4+3] = 0
 				continue
 			}
-			r := int(cell.color.R) + cell.colorOffset
-			g := int(cell.color.G) + cell.colorOffset
-			b := int(cell.color.B) + cell.colorOffset
+			r := 0
+			g := 0
+			b := 0
+			if cell.temp < 0 {
+				b = -cell.temp
+				g = -cell.temp / 30
+			} else {
+				r = cell.temp
+			}
+
+			if cell.cType == FIRE {
+				g += cell.extraData1
+				r -= cell.extraData2 / 3
+				g -= cell.extraData2 / 3
+				b -= cell.extraData2 / 3
+			}
+
+			r = int(cell.color.R) + r + cell.colorOffset
+			g = int(cell.color.G) + g + cell.colorOffset
+			b = int(cell.color.B) + b + cell.colorOffset
 
 			pix[idx*4] = uint8(clamp(r, 0, 255))
 			pix[idx*4+1] = uint8(clamp(g, 0, 255))
