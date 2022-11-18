@@ -83,13 +83,23 @@ func (w *Worker) UpdateChunk() {
 			}
 			switch c.cType {
 			case SAND:
-				w.MovePowder(px, py, c)
+				if c.extraData1 == 0 {
+					w.MovePowder(px, py, c)
+				} else {
+					w.MoveSolid(px, py, c)
+				}
 			case WATR:
-				w.MoveLiquid(px, py, c)
+				if c.temp > -80 {
+					w.MoveLiquid(px, py, c)
+				} else {
+					w.MoveSolid(px, py, c)
+				}
 			case STNE:
 				w.MoveSolid(px, py, c)
 			case SMKE, STEM:
 				w.MoveGas(px, py, c)
+			case FIRE:
+				w.MoveFire(px, py, c)
 			}
 		}
 	}
@@ -104,6 +114,7 @@ func (w *Worker) UpdateChunkState() {
 			if c.cType == AIR {
 				continue
 			}
+
 			switch c.cType {
 			case SMKE:
 				w.UpdateSmoke(px, py)
@@ -113,6 +124,9 @@ func (w *Worker) UpdateChunkState() {
 				w.UpdateWater(px, py)
 			case SAND:
 				w.UpdateSand(px, py)
+
+			case FIRE:
+				w.UpdateFire(px, py)
 			}
 		}
 	}

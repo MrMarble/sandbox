@@ -1,11 +1,50 @@
 package main
 
-import "math/rand"
+import (
+	"fmt"
+	"math/rand"
+)
 
 func (s *Worker) UpdateSteam(x, y int) {
 	cell := s.GetCell(x, y)
 	if cell.temp < 100 {
 		s.SetCell(x, y, *NewCell(WATR))
+	}
+}
+
+func (w *Worker) UpdateFire(x, y int) {
+	cell := w.GetCell(x, y)
+	if cell.temp < 40 || cell.extraData2 > 60 {
+		w.SetCell(x, y, Cell{cType: AIR})
+	}
+	if w.InBounds(x, y+1) {
+		other := w.GetCell(x, y+1)
+		if other.IsFlamable() && rand.Intn(100) > 65 {
+			w.SetCell(x, y+1, *NewCell(FIRE))
+			w.SetCell(x, y, Cell{cType: AIR})
+		}
+	}
+	if w.InBounds(x, y-1) {
+		other := w.GetCell(x, y-1)
+		if other.IsFlamable() && rand.Intn(100) > 65 {
+			fmt.Println("flame-1")
+			w.SetCell(x, y-1, *NewCell(FIRE))
+			w.SetCell(x, y, Cell{cType: AIR})
+		}
+	}
+	if w.InBounds(x+1, y) {
+		other := w.GetCell(x+1, y)
+		if other.IsFlamable() && rand.Intn(100) > 65 {
+			w.SetCell(x+1, y, *NewCell(FIRE))
+			w.SetCell(x, y, Cell{cType: AIR})
+		}
+	}
+	if w.InBounds(x-1, y) {
+		other := w.GetCell(x-1, y)
+		if other.IsFlamable() && rand.Intn(100) > 65 {
+			w.SetCell(x-1, y, *NewCell(FIRE))
+			w.SetCell(x, y, Cell{cType: AIR})
+		}
 	}
 }
 
@@ -26,7 +65,7 @@ func (s *Worker) UpdateWater(x, y int) {
 	if cell.temp >= 100 {
 		t := clamp(float64(cell.temp/150), 0, 1)
 		chance := (1-t)*0.3 + t*0.7
-		if rand.Intn(100) < int(100-chance) {
+		if rand.Intn(100) > int(chance) {
 			s.SetCell(x, y, *NewCell(STEM))
 		}
 	}
@@ -50,6 +89,17 @@ func (s *Worker) UpdateWater(x, y int) {
 		y2++
 	}
 
+}
+
+func (s *Worker) MoveFire(x, y int, cell *Cell) {
+	nx, ny := s.MoveGas(x, y, cell)
+	extraData2 := s.GetCell(nx, ny).extraData2
+	if ny == y {
+		extraData2++
+	} else {
+		extraData2--
+	}
+	cell.extraData2 = extraData2
 }
 
 func (s *Worker) UpdateSand(x, y int) {
@@ -86,20 +136,25 @@ func (s *Worker) MoveLiquid(x, y int, cell *Cell) {
 	}
 }
 
-func (s *Worker) MoveGas(x, y int, cell *Cell) {
+// TODO: refactor this to return position
+func (s *Worker) MoveGas(x, y int, cell *Cell) (int, int) {
 	if s.IsEmpty(x, y-1) && rand.Intn(100) < 50 {
 		s.MoveCell(x, y, x, y-1)
+		return x, y - 1
 	} else {
 		xn, yn := s.randomNeighbour(x, y, -1)
 		if xn != -1 && yn != -1 {
 			s.MoveCell(x, y, xn, yn)
+			return xn, yn
 		} else {
 			xn, yn = s.randomNeighbour(x, y, 0)
 			if xn != -1 && yn != -1 {
 				s.MoveCell(x, y, xn, yn)
+				return xn, yn
 			}
 		}
 	}
+	return x, y
 }
 
 func (s *Worker) MoveSolid(x, y int, cell *Cell) {

@@ -17,6 +17,8 @@ const (
 	STNE
 	SMKE
 	STEM
+	WOOD
+	FIRE
 )
 
 func getColor(cType CellType) string {
@@ -33,6 +35,10 @@ func getColor(cType CellType) string {
 		return "#101010"
 	case STEM:
 		return "#ADD8E6"
+	case WOOD:
+		return "#BA8C63"
+	case FIRE:
+		return "#F44D2B"
 	default:
 		return "#000000"
 	}
@@ -90,6 +96,9 @@ func NewCell(cType CellType) *Cell {
 		cell.extraData2 = 90
 	case STEM:
 		cell.temp = 100
+	case FIRE:
+		cell.extraData1 = rand.Intn(60)
+		cell.temp = 130
 	}
 	return cell
 }
@@ -100,11 +109,22 @@ func (c *Cell) ThermalConductivity() int {
 		return 3
 	case WATR:
 		return 5
-	case STNE:
+	case STNE, WOOD:
 		return 1
+	case FIRE:
+		return 2
 	case STEM, SMKE:
 		return 6
 	default:
 		return 0
+	}
+}
+
+func (c *Cell) IsFlamable() bool {
+	switch c.cType {
+	case WOOD:
+		return true
+	default:
+		return false
 	}
 }
