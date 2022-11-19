@@ -39,7 +39,7 @@ func Rect(image *ebiten.Image, x, y, w, h int, color color.Color, filled bool) {
 }
 
 func Button(image *ebiten.Image, str string, x, y int, col color.Color, active bool) {
-	width := 20
+	width := 25
 	height := 8
 	padding := 3
 	inset := (width - len(str)*5) / 2

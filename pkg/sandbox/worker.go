@@ -89,15 +89,15 @@ func (w *Worker) UpdateChunk() {
 				} else {
 					w.MoveSolid(px, py, c)
 				}
-			case WATR:
+			case WATER:
 				if c.temp > -80 {
 					w.MoveLiquid(px, py, c)
 				} else {
 					w.MoveSolid(px, py, c)
 				}
-			case STNE:
+			case STONE:
 				w.MoveSolid(px, py, c)
-			case SMKE, STEM:
+			case SMOKE, STEAM:
 				w.MoveGas(px, py, c)
 			case FIRE:
 				w.MoveFire(px, py, c)
@@ -120,11 +120,11 @@ func (w *Worker) UpdateChunkState() {
 			}
 
 			switch c.cType {
-			case SMKE:
+			case SMOKE:
 				w.UpdateSmoke(px, py)
-			case STEM:
+			case STEAM:
 				w.UpdateSteam(px, py)
-			case WATR:
+			case WATER:
 				w.UpdateWater(px, py)
 			case SAND:
 				w.UpdateSand(px, py)

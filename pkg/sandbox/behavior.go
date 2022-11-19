@@ -8,7 +8,7 @@ import (
 func (s *Worker) UpdateSteam(x, y int) {
 	cell := s.GetCell(x, y)
 	if cell.temp < 100 {
-		s.SetCell(x, y, NewCell(WATR))
+		s.SetCell(x, y, NewCell(WATER))
 	}
 }
 
@@ -67,7 +67,7 @@ func (s *Worker) UpdateWater(x, y int) {
 		t := misc.Clamp(float64(cell.temp/150), 0, 1)
 		chance := (1-t)*0.3 + t*0.7
 		if rand.Intn(100) > int(chance) {
-			s.SetCell(x, y, NewCell(STEM))
+			s.SetCell(x, y, NewCell(STEAM))
 		}
 	}
 

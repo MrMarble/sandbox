@@ -12,11 +12,11 @@ type CellType int
 
 const (
 	SAND CellType = iota
-	WATR
+	WATER
 	WALL
-	STNE
-	SMKE
-	STEM
+	STONE
+	SMOKE
+	STEAM
 	WOOD
 	FIRE
 	AIR // special type for empty cells. Always last for easy iteration
@@ -26,15 +26,15 @@ func (cType CellType) Color() color.RGBA {
 	switch cType {
 	case SAND:
 		return color.RGBA{0xc2, 0xb2, 0x80, 0xff} //#c2b280
-	case WATR:
+	case WATER:
 		return color.RGBA{0x07, 0xa9, 0xbe, 0xff} //#07a9be
 	case WALL:
 		return color.RGBA{0x25, 0x25, 0x25, 0xff} //#252525
-	case STNE:
+	case STONE:
 		return color.RGBA{0x80, 0x80, 0x80, 0xff} //#808080
-	case SMKE:
+	case SMOKE:
 		return color.RGBA{0x10, 0x10, 0x10, 0xff} //#101010
-	case STEM:
+	case STEAM:
 		return color.RGBA{0xad, 0xd8, 0xe6, 0xff} //#add8e6
 	case WOOD:
 		return color.RGBA{0xba, 0x8c, 0x63, 0xff} //#ba8c63
@@ -61,10 +61,10 @@ func NewCell(cType CellType) *Cell {
 		colorOffset: rand.Intn(20) + -10,
 	}
 	switch cType {
-	case SMKE:
+	case SMOKE:
 		cell.extraData1 = 90 + (rand.Intn(40) + -20)
 		cell.extraData2 = 90
-	case STEM:
+	case STEAM:
 		cell.temp = 100
 	case FIRE:
 		cell.extraData1 = rand.Intn(60)
@@ -77,13 +77,13 @@ func (c *Cell) ThermalConductivity() int {
 	switch c.cType {
 	case SAND:
 		return 3
-	case WATR:
+	case WATER:
 		return 5
-	case STNE, WOOD:
+	case STONE, WOOD:
 		return 1
 	case FIRE:
 		return 2
-	case STEM, SMKE:
+	case STEAM, SMOKE:
 		return 6
 	default:
 		return 0

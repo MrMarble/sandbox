@@ -22,7 +22,7 @@ func hash(x, y int) string {
 	return strconv.Itoa(x*0xf1f1f1f1 ^ y)
 }
 
-const MaxChunks = 8
+const MaxChunks = 10
 
 func NewSandbox(width, height int) *Sandbox {
 	cWidth := width / MaxChunks
