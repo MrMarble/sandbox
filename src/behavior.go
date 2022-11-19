@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"math/rand"
+	"pgregory.net/rand"
 )
 
 func (s *Worker) UpdateSteam(x, y int) {
@@ -27,7 +26,6 @@ func (w *Worker) UpdateFire(x, y int) {
 	if w.InBounds(x, y-1) {
 		other := w.GetCell(x, y-1)
 		if other.IsFlamable() && rand.Intn(100) > 65 {
-			fmt.Println("flame-1")
 			w.SetCell(x, y-1, *NewCell(FIRE))
 			w.SetCell(x, y, Cell{cType: AIR})
 		}

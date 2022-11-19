@@ -2,7 +2,8 @@ package main
 
 import (
 	"image/color"
-	"math/rand"
+
+	"pgregory.net/rand"
 )
 
 //go:generate stringer -type=CellType

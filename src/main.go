@@ -5,8 +5,6 @@ import (
 	"image/color"
 	"log"
 	"math"
-	"math/rand"
-	"time"
 
 	"github.com/hajimehoshi/bitmapfont"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -15,10 +13,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/exp/constraints"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 const (
 	screenWidth  = 640

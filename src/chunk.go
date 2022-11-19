@@ -1,9 +1,10 @@
 package main
 
 import (
-	"math/rand"
 	"sort"
 	"sync"
+
+	"pgregory.net/rand"
 )
 
 type Change struct {
