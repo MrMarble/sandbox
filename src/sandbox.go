@@ -210,15 +210,18 @@ func (s *Sandbox) Draw(pix []byte) {
 				g -= cell.extraData2 / 3
 				b -= cell.extraData2 / 3
 			}
-
-			r = int(cell.color.R) + r + cell.colorOffset
-			g = int(cell.color.G) + g + cell.colorOffset
-			b = int(cell.color.B) + b + cell.colorOffset
+			cR := cell.BaseColor().R
+			cG := cell.BaseColor().G
+			cB := cell.BaseColor().B
+			cA := cell.BaseColor().A
+			r = int(cR) + r + cell.colorOffset
+			g = int(cG) + g + cell.colorOffset
+			b = int(cB) + b + cell.colorOffset
 
 			pix[idx*4] = uint8(clamp(r, 0, 255))
 			pix[idx*4+1] = uint8(clamp(g, 0, 255))
 			pix[idx*4+2] = uint8(clamp(b, 0, 255))
-			pix[idx*4+3] = cell.color.A
+			pix[idx*4+3] = cA
 		}
 	}
 	// Remove chunks here to avoid leaving dangling particles

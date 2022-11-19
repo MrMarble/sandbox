@@ -139,7 +139,7 @@ func (g *Game) debugInfo(screen *ebiten.Image) {
 
 func (g *Game) DrawUI(screen *ebiten.Image) {
 	for i := 0; i < len(_CellType_index)-1; i++ {
-		button(screen, CellType(i).String(), 5+30*i, screenHeight-18, ParseHexColor(getColor(CellType(i))), g.selectedCellType == CellType(i))
+		button(screen, CellType(i).String(), 5+30*i, screenHeight-18, getColor(CellType(i)), g.selectedCellType == CellType(i))
 	}
 }
 
@@ -163,12 +163,13 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func main() {
 	g := &Game{
-		sandbox:          NewSandbox(screenWidth, screenHeight-20),
+		sandbox:          NewSandbox(screenWidth, screenHeight),
 		selectedCellType: SAND,
 		brushSize:        10,
 	}
 	ebiten.SetTPS(120)
-	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
+	ebiten.SetScreenClearedEveryFrame(true)
 	ebiten.SetWindowTitle("Sandbox")
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)

@@ -22,33 +22,32 @@ const (
 	FIRE
 )
 
-func getColor(cType CellType) string {
+func getColor(cType CellType) color.RGBA {
 	switch cType {
 	case SAND:
-		return "#c2b280"
+		return color.RGBA{0xc2, 0xb2, 0x80, 0xff} //#c2b280
 	case WATR:
-		return "#07a9be"
+		return color.RGBA{0x07, 0xa9, 0xbe, 0xff} //#07a9be
 	case WALL:
-		return "#252525"
+		return color.RGBA{0x25, 0x25, 0x25, 0xff} //#252525
 	case STNE:
-		return "#808080"
+		return color.RGBA{0x80, 0x80, 0x80, 0xff} //#808080
 	case SMKE:
-		return "#101010"
+		return color.RGBA{0x10, 0x10, 0x10, 0xff} //#101010
 	case STEM:
-		return "#ADD8E6"
+		return color.RGBA{0xad, 0xd8, 0xe6, 0xff} //#add8e6
 	case WOOD:
-		return "#BA8C63"
+		return color.RGBA{0xba, 0x8c, 0x63, 0xff} //#ba8c63
 	case FIRE:
-		return "#F44D2B"
+		return color.RGBA{0xf4, 0x4d, 0x2b, 0xff} //#f44d2b
 	default:
-		return "#000000"
+		return color.RGBA{0x00, 0x00, 0x00, 0x00} //transparent
 	}
 }
 
 type Cell struct {
 	cType CellType
 
-	color       color.RGBA
 	colorOffset int
 
 	temp       int
@@ -56,39 +55,9 @@ type Cell struct {
 	extraData2 int
 }
 
-func ParseHexColor(s string) (c color.RGBA) {
-	c.A = 0xff
-
-	hexToByte := func(b byte) byte {
-		switch {
-		case b >= '0' && b <= '9':
-			return b - '0'
-		case b >= 'a' && b <= 'f':
-			return b - 'a' + 10
-		case b >= 'A' && b <= 'F':
-			return b - 'A' + 10
-		}
-		return 0
-	}
-
-	switch len(s) {
-	case 7:
-		c.R = hexToByte(s[1])<<4 + hexToByte(s[2])
-		c.G = hexToByte(s[3])<<4 + hexToByte(s[4])
-		c.B = hexToByte(s[5])<<4 + hexToByte(s[6])
-	case 4:
-		c.R = hexToByte(s[1]) * 17
-		c.G = hexToByte(s[2]) * 17
-		c.B = hexToByte(s[3]) * 17
-	default:
-	}
-	return
-}
-
 func NewCell(cType CellType) *Cell {
 	cell := &Cell{
 		cType:       cType,
-		color:       ParseHexColor(getColor(cType)),
 		colorOffset: rand.Intn(20) + -10,
 	}
 	switch cType {
@@ -127,5 +96,17 @@ func (c *Cell) IsFlamable() bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func (c *Cell) BaseColor() color.RGBA {
+	switch c.cType {
+	case SAND:
+		if c.extraData1 > 0 {
+			return color.RGBA{0xb1, 0x9d, 0x5e, 0xff} //#b19d5e
+		}
+		return getColor(c.cType)
+	default:
+		return getColor(c.cType)
 	}
 }

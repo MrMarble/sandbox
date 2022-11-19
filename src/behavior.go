@@ -78,7 +78,6 @@ func (s *Worker) UpdateWater(x, y int) {
 			if cellBelow.extraData1 == 0 {
 				s.SetCell(x, y, Cell{cType: AIR})
 				cellBelow.extraData1 = 1
-				cellBelow.color = ParseHexColor("#b19d5e")
 				return
 			}
 		} else {
