@@ -208,7 +208,7 @@ func (s *Sandbox) Draw(pix []byte, screenWidth int) {
 				r = cell.temp
 			}
 
-			if cell.cType == FIRE {
+			if cell.CType == FIRE {
 				g += cell.extraData1
 				r -= cell.extraData2 / 3
 				g -= cell.extraData2 / 3

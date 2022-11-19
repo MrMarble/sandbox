@@ -82,7 +82,7 @@ func (w *Worker) UpdateChunk() {
 			px := x + w.chunk.X*w.chunk.Width
 			py := y + w.chunk.Y*w.chunk.Height
 
-			switch c.cType {
+			switch c.CType {
 			case SAND:
 				if c.extraData1 == 0 {
 					w.MovePowder(px, py, c)
@@ -121,11 +121,11 @@ func (w *Worker) UpdateChunkState() {
 			}
 			px := x + w.chunk.X*w.chunk.Width
 			py := y + w.chunk.Y*w.chunk.Height
-			if c.cType == AIR {
+			if c.CType == AIR {
 				continue
 			}
 
-			switch c.cType {
+			switch c.CType {
 			case SMOKE:
 				w.UpdateSmoke(px, py)
 			case STEAM:
@@ -151,7 +151,7 @@ func (w *Worker) UpdateChunkTemp() {
 			}
 			px := x + w.chunk.X*w.chunk.Width
 			py := y + w.chunk.Y*w.chunk.Height
-			if c.cType == AIR || c.temp == 0 {
+			if c.CType == AIR || c.temp == 0 {
 				continue
 			}
 			temp := c.temp

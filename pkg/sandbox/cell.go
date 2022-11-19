@@ -49,7 +49,7 @@ func (cType CellType) Color() color.RGBA {
 }
 
 type Cell struct {
-	cType CellType
+	CType CellType
 
 	colorOffset int
 
@@ -60,7 +60,7 @@ type Cell struct {
 
 func NewCell(cType CellType) *Cell {
 	cell := &Cell{
-		cType:       cType,
+		CType:       cType,
 		colorOffset: rand.Intn(20) + -10,
 	}
 	switch cType {
@@ -77,7 +77,7 @@ func NewCell(cType CellType) *Cell {
 }
 
 func (c *Cell) ThermalConductivity() int {
-	switch c.cType {
+	switch c.CType {
 	case SAND:
 		return 3
 	case WATER:
@@ -94,7 +94,7 @@ func (c *Cell) ThermalConductivity() int {
 }
 
 func (c *Cell) IsFlamable() bool {
-	switch c.cType {
+	switch c.CType {
 	case WOOD:
 		return true
 	default:
@@ -103,13 +103,13 @@ func (c *Cell) IsFlamable() bool {
 }
 
 func (c *Cell) BaseColor() color.RGBA {
-	switch c.cType {
+	switch c.CType {
 	case SAND:
 		if c.extraData1 > 0 {
 			return color.RGBA{0xb1, 0x9d, 0x5e, 0xff} //#b19d5e
 		}
-		return c.cType.Color()
+		return c.CType.Color()
 	default:
-		return c.cType.Color()
+		return c.CType.Color()
 	}
 }

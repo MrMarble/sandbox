@@ -77,7 +77,7 @@ func (s *Worker) UpdateWater(x, y int) {
 			return
 		}
 		cellBelow := s.GetCell(x, y2)
-		if !isEmpty(cellBelow) && cellBelow.cType == SAND {
+		if !isEmpty(cellBelow) && cellBelow.CType == SAND {
 			if cellBelow.extraData1 == 0 {
 				s.SetCell(x, y, nil)
 				cellBelow.extraData1 = 1
@@ -111,7 +111,7 @@ func (s *Worker) UpdateSand(x, y int) {
 	}
 
 	if cell.temp >= 120 {
-		cell.cType = GLASS
+		s.SetCell(x, y, NewCell(GLASS))
 	}
 }
 

@@ -105,7 +105,7 @@ func (c *Chunk) SetCell(x, y int, cell *Cell) {
 }
 
 func isEmpty(cell *Cell) bool {
-	return cell == nil || cell.cType == AIR
+	return cell == nil || cell.CType == AIR
 }
 
 func (c *Chunk) SetCellAt(i int, cell *Cell) {
