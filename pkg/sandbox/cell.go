@@ -12,6 +12,7 @@ type CellType int
 
 const (
 	SAND CellType = iota
+	GLASS
 	WATER
 	WALL
 	STONE
@@ -40,8 +41,10 @@ func (cType CellType) Color() color.RGBA {
 		return color.RGBA{0xba, 0x8c, 0x63, 0xff} //#ba8c63
 	case FIRE:
 		return color.RGBA{0xf4, 0x4d, 0x2b, 0xff} //#f44d2b
+	case GLASS:
+		return color.RGBA{0x9f, 0xc6, 0xc5, 0xff} //#9FC6C5
 	default:
-		return color.RGBA{0x00, 0x00, 0x00, 0xff} //"#000000"
+		return color.RGBA{0x00, 0x00, 0x00, 0xff} //#000000
 	}
 }
 
@@ -81,7 +84,7 @@ func (c *Cell) ThermalConductivity() int {
 		return 5
 	case STONE, WOOD:
 		return 1
-	case FIRE:
+	case FIRE, GLASS:
 		return 2
 	case STEAM, SMOKE:
 		return 6

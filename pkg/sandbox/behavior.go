@@ -109,6 +109,10 @@ func (s *Worker) UpdateSand(x, y int) {
 	if !isEmpty(cell) && cell.extraData1 == 1 && cell.temp >= 30 {
 		cell.extraData1 = 0
 	}
+
+	if cell.temp >= 120 {
+		cell.cType = GLASS
+	}
 }
 
 func (s *Worker) MovePowder(x, y int, cell *Cell) {

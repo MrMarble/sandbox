@@ -95,6 +95,12 @@ func (w *Worker) UpdateChunk() {
 				} else {
 					w.MoveSolid(px, py, c)
 				}
+			case GLASS:
+				if c.temp >= 30 {
+					w.MoveLiquid(px, py, c)
+				} else {
+					w.MoveSolid(px, py, c)
+				}
 			case STONE:
 				w.MoveSolid(px, py, c)
 			case SMOKE, STEAM:
