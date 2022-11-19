@@ -28,8 +28,9 @@ type game struct {
 	sandbox *sandbox.Sandbox
 	menu    *ui.Menu
 
-	pause bool
-	debug bool
+	pause       bool
+	debug       bool
+	tempOverlay bool
 
 	brushSize int
 
@@ -48,10 +49,11 @@ func New() *game {
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
 
 	return &game{
-		sandbox:   sandbox.NewSandbox(screenWidth-margin, screenHeight-margin),
-		brushSize: 10,
-		offscreen: ebiten.NewImage(screenWidth-margin, screenHeight-margin),
-		menu:      ui.NewMenu(margin/2, screenHeight-margin/2+5),
+		sandbox:     sandbox.NewSandbox(screenWidth-margin, screenHeight-margin),
+		brushSize:   10,
+		tempOverlay: true,
+		offscreen:   ebiten.NewImage(screenWidth-margin, screenHeight-margin),
+		menu:        ui.NewMenu(margin/2, screenHeight-margin/2+5),
 	}
 }
 
@@ -66,7 +68,9 @@ func (g *game) Update() error {
 	g.menu.Update()
 	g.placeQueueParticles()
 
-	g.sandbox.Update()
+	if !g.pause {
+		g.sandbox.Update(g.tempOverlay)
+	}
 	return nil
 }
 
@@ -77,7 +81,7 @@ func (g *game) Draw(screen *ebiten.Image) {
 		offscrenOptions.GeoM.Translate(float64(margin/2), float64(margin/2))
 	}
 
-	g.sandbox.Draw(g.pixels, g.offscreen.Bounds().Dx())
+	g.sandbox.Draw(g.pixels, g.offscreen.Bounds().Dx(), g.tempOverlay)
 	g.offscreen.WritePixels(g.pixels)
 
 	// Brush size
@@ -114,6 +118,10 @@ func (g *game) handleInput() {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
 		g.pause = !g.pause
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyT) {
+		g.tempOverlay = !g.tempOverlay
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyD) {

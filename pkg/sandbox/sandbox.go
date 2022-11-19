@@ -169,10 +169,12 @@ func (s *Sandbox) StateUpdate() {
 	wg.Wait()
 }
 
-func (s *Sandbox) Update() {
+func (s *Sandbox) Update(temp bool) {
 	s.RemoveEmptyChunks()
 	s.MoveUpdate()
-	s.TempUpdate()
+	if temp {
+		s.TempUpdate()
+	}
 	s.StateUpdate()
 }
 
@@ -183,7 +185,7 @@ func (s *Sandbox) KeepAlive(x, y int) {
 	}
 }
 
-func (s *Sandbox) Draw(pix []byte, screenWidth int) {
+func (s *Sandbox) Draw(pix []byte, screenWidth int, temp bool) {
 	for _, c := range s.Chunks {
 		for i, cell := range c.cells {
 
@@ -201,11 +203,14 @@ func (s *Sandbox) Draw(pix []byte, screenWidth int) {
 			r := 0
 			g := 0
 			b := 0
-			if cell.temp < 0 {
-				b = -cell.temp
-				g = -cell.temp / 30
-			} else {
-				r = cell.temp
+
+			if temp {
+				if cell.temp < 0 {
+					b = -cell.temp
+					g = -cell.temp / 30
+				} else {
+					r = cell.temp
+				}
 			}
 
 			if cell.CType == FIRE {

@@ -20,6 +20,7 @@ const (
 	STEAM
 	WOOD
 	FIRE
+	IRON
 	AIR // special type for empty cells. Always last for easy iteration
 )
 
@@ -43,6 +44,8 @@ func (cType CellType) Color() color.RGBA {
 		return color.RGBA{0xf4, 0x4d, 0x2b, 0xff} //#f44d2b
 	case GLASS:
 		return color.RGBA{0x9f, 0xc6, 0xc5, 0xff} //#9FC6C5
+	case IRON:
+		return color.RGBA{0x9c, 0x9c, 0x9c, 0xff} //#9c9c9c
 	default:
 		return color.RGBA{0x00, 0x00, 0x00, 0xff} //#000000
 	}
@@ -88,6 +91,8 @@ func (c *Cell) ThermalConductivity() int {
 		return 2
 	case STEAM, SMOKE:
 		return 6
+	case IRON:
+		return 8
 	default:
 		return 0
 	}
