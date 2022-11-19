@@ -1,0 +1,22 @@
+run:
+  allow-parallel-runners: true
+  skip-dirs:
+    - "bin"
+  skip-dirs-use-default: true
+  skip-files:
+    - "_string\\.go&"
+linters:
+  enable:
+    - forbidigo
+    - gocritic
+    - gofumpt
+    - golint
+    - whitespace
+    - errcheck
+    - govet
+    - ineffassign
+  presets:
+    - bugs
+    - comment
+    - performance
+    - unused

@@ -4,7 +4,7 @@ import (
 	"sort"
 	"sync"
 
-	. "github.com/mrmarble/sandbox/pkg/misc"
+	"github.com/mrmarble/sandbox/pkg/misc"
 	"pgregory.net/rand"
 )
 
@@ -46,15 +46,16 @@ func NewChunk(width, height, x, y int) *Chunk {
 func (c *Chunk) KeepAlive(x, y int) {
 	c.KeepAliveAt(c.GetIndex(x, y))
 }
+
 func (c *Chunk) KeepAliveAt(i int) {
 	x := i % c.Width
 	y := i / c.Width
 
 	c.dirtyRectMutex.Lock()
-	c.minXw = Clamp(Min(x-2, c.minXw), 0, c.Width)
-	c.minYw = Clamp(Min(y-2, c.minYw), 0, c.Height)
-	c.maxXw = Clamp(Max(x+2, c.maxXw), 0, c.Width)
-	c.maxYw = Clamp(Max(y+2, c.maxYw), 0, c.Height)
+	c.minXw = misc.Clamp(misc.Min(x-2, c.minXw), 0, c.Width)
+	c.minYw = misc.Clamp(misc.Min(y-2, c.minYw), 0, c.Height)
+	c.maxXw = misc.Clamp(misc.Max(x+2, c.maxXw), 0, c.Width)
+	c.maxYw = misc.Clamp(misc.Max(y+2, c.maxYw), 0, c.Height)
 	c.dirtyRectMutex.Unlock()
 }
 

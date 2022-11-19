@@ -1,6 +1,6 @@
 module github.com/mrmarble/sandbox
 
-go 1.18
+go 1.19
 
 require (
 	github.com/hajimehoshi/bitmapfont v1.3.1
@@ -17,7 +17,7 @@ require (
 	github.com/jezek/xgb v1.0.1 // indirect
 	github.com/orcaman/concurrent-map/v2 v2.0.1
 	golang.org/x/exp/shiny v0.0.0-20221114191408-850992195362 // indirect
-	golang.org/x/image v0.1.0
+	golang.org/x/image v0.1.0 // indirect
 	golang.org/x/mobile v0.0.0-20220722155234-aaac322e2105 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	pgregory.net/rand v1.0.2

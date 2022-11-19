@@ -8,13 +8,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"golang.org/x/image/font"
 )
 
 var (
 	whiteImage = ebiten.NewImage(3, 3)
 	subImage   = whiteImage.SubImage(image.Rect(1, 1, 2, 2)).(*ebiten.Image)
-	normalFont font.Face
 )
 
 func Rect(image *ebiten.Image, x, y, w, h int, color color.Color, filled bool) {

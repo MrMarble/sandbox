@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"log"
 	"math"
 
 	"github.com/hajimehoshi/bitmapfont"
@@ -23,7 +24,7 @@ var (
 	offscrenOptions = &ebiten.DrawImageOptions{}
 )
 
-type game struct {
+type Game struct {
 	pixels  []byte
 	sandbox *sandbox.Sandbox
 	menu    *ui.Menu
@@ -42,13 +43,12 @@ type game struct {
 	offscreen *ebiten.Image
 }
 
-func New() *game {
+func New() *Game {
 	ebiten.SetWindowTitle("Sandbox")
-	ebiten.SetWindowResizable(false)
-	ebiten.SetMaxTPS(ebiten.SyncWithFPS)
+	ebiten.SetTPS(ebiten.SyncWithFPS)
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
 
-	return &game{
+	return &Game{
 		sandbox:     sandbox.NewSandbox(screenWidth-margin, screenHeight-margin),
 		brushSize:   10,
 		tempOverlay: true,
@@ -57,12 +57,12 @@ func New() *game {
 	}
 }
 
-func (g *game) Layout(outsideWidth, outsideHeight int) (int, int) {
+func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	s := ebiten.DeviceScaleFactor()
 	return screenWidth * int(s), screenHeight * int(s)
 }
 
-func (g *game) Update() error {
+func (g *Game) Update() error {
 	g.updateCursor()
 	g.handleInput()
 	g.menu.Update()
@@ -74,9 +74,9 @@ func (g *game) Update() error {
 	return nil
 }
 
-func (g *game) Draw(screen *ebiten.Image) {
+func (g *Game) Draw(screen *ebiten.Image) {
 	if g.pixels == nil {
-		fmt.Println("init")
+		log.Println("init")
 		g.pixels = make([]byte, g.offscreen.Bounds().Dx()*g.offscreen.Bounds().Dy()*4)
 		offscrenOptions.GeoM.Translate(float64(margin/2), float64(margin/2))
 	}
@@ -93,16 +93,15 @@ func (g *game) Draw(screen *ebiten.Image) {
 	g.menu.Draw(screen)
 	g.debugInfo(screen)
 	screen.DrawImage(g.offscreen, offscrenOptions)
-
 }
 
-func (g *game) updateCursor() {
+func (g *Game) updateCursor() {
 	g.prevPos = g.cursorPos
 	x, y := ebiten.CursorPosition()
 	g.cursorPos = [2]int{x, y}
 }
 
-func (g *game) handleInput() {
+func (g *Game) handleInput() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		prevX, prevY := offscreenCursor(g.prevPos[0], g.prevPos[1])
 		x, y := offscreenCursor(g.cursorPos[0], g.cursorPos[1])
@@ -135,7 +134,7 @@ func (g *game) handleInput() {
 	}
 }
 
-func (g *game) placeQueueParticles() {
+func (g *Game) placeQueueParticles() {
 	for {
 		if len(g.cellQueue) == 0 {
 			break
@@ -183,11 +182,11 @@ func (g *game) placeQueueParticles() {
 	}
 }
 
-func (g *game) debugInfo(screen *ebiten.Image) {
-	dbg := fmt.Sprintf("FPS: %0.2f\n", ebiten.CurrentFPS())
+func (g *Game) debugInfo(screen *ebiten.Image) {
+	dbg := fmt.Sprintf("FPS: %0.2f\n", ebiten.ActualFPS())
 
 	if g.debug {
-		dbg += fmt.Sprintf("TPS: %0.2f\n", ebiten.CurrentTPS())
+		dbg += fmt.Sprintf("TPS: %0.2f\n", ebiten.ActualTPS())
 		curx, cury := offscreenCursor(g.cursorPos[0], g.cursorPos[1])
 		if g.sandbox.InBounds(curx, cury) {
 			cell := g.sandbox.GetCell(curx, cury)
@@ -205,7 +204,6 @@ func (g *game) debugInfo(screen *ebiten.Image) {
 		}
 	}
 	ebitenutil.DebugPrint(screen, dbg)
-
 }
 
 func offscreenCursor(x, y int) (int, int) {

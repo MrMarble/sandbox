@@ -41,7 +41,7 @@ func (w *Worker) SetCell(x, y int, cell *Cell) {
 func (w *Worker) MoveCell(x, y, dx, dy int) {
 	pingX := 0
 	pingY := 0
-	//fmt.Println("Moving cell from", x, y, "to", dx, dy, "in chunk", w.chunk.x, w.chunk.y)
+
 	if x == w.chunk.X*w.chunk.Width {
 		pingX = -1
 	}
@@ -134,7 +134,6 @@ func (w *Worker) UpdateChunkState() {
 				w.UpdateWater(px, py)
 			case SAND:
 				w.UpdateSand(px, py)
-
 			case FIRE:
 				w.UpdateFire(px, py)
 			}
@@ -175,7 +174,6 @@ func (w *Worker) UpdateChunkTemp() {
 					c.temp -= t
 					other.temp += t
 					w.chunk.KeepAlive(px, py-1)
-
 				}
 			}
 			if w.InBounds(px+1, py) {
@@ -186,7 +184,6 @@ func (w *Worker) UpdateChunkTemp() {
 					c.temp -= t
 					other.temp += t
 					w.chunk.KeepAlive(px+1, py)
-
 				}
 			}
 			if w.InBounds(px-1, py) {

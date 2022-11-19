@@ -107,16 +107,13 @@ func (s *Sandbox) RemoveEmptyChunks() {
 			i--
 
 			chunk = nil
-		} else {
-			if chunk != nil {
-				if !s.chunkLookup.Has(hash(chunk.X, chunk.Y)) {
-					s.chunkMutex.Lock()
-					s.Chunks = append(s.Chunks[:i], s.Chunks[i+1:]...)
-					s.chunkMutex.Unlock()
-				}
+		} else if chunk != nil {
+			if !s.chunkLookup.Has(hash(chunk.X, chunk.Y)) {
+				s.chunkMutex.Lock()
+				s.Chunks = append(s.Chunks[:i], s.Chunks[i+1:]...)
+				s.chunkMutex.Unlock()
 			}
 		}
-
 	}
 }
 
@@ -188,7 +185,6 @@ func (s *Sandbox) KeepAlive(x, y int) {
 func (s *Sandbox) Draw(pix []byte, screenWidth int, temp bool) {
 	for _, c := range s.Chunks {
 		for i, cell := range c.cells {
-
 			x := i%c.Width + c.X*c.Width
 			y := i/c.Width + c.Y*c.Height
 			idx := (x + y*screenWidth)
