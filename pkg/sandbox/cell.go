@@ -41,7 +41,7 @@ func (cType CellType) Color() color.RGBA {
 	case FIRE:
 		return color.RGBA{0xf4, 0x4d, 0x2b, 0xff} //#f44d2b
 	default:
-		return color.RGBA{0x00, 0x00, 0x00, 0x00} //transparent
+		return color.RGBA{0x00, 0x00, 0x00, 0xff} //"#000000"
 	}
 }
 
