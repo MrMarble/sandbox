@@ -1,9 +1,10 @@
-package main
+package sandbox
 
 import (
 	"strconv"
 	"sync"
 
+	"github.com/mrmarble/sandbox/pkg/misc"
 	cmap "github.com/orcaman/concurrent-map/v2"
 )
 
@@ -11,7 +12,7 @@ type Sandbox struct {
 	width, height   int
 	cWidth, cHeight int
 
-	chunks      []*Chunk
+	Chunks      []*Chunk
 	chunkLookup cmap.ConcurrentMap[string, *Chunk]
 
 	chunkMutex sync.Mutex
@@ -31,7 +32,7 @@ func NewSandbox(width, height int) *Sandbox {
 		height:      height,
 		cWidth:      cWidth,
 		cHeight:     cHeight,
-		chunks:      []*Chunk{},
+		Chunks:      []*Chunk{},
 		chunkLookup: cmap.New[*Chunk](),
 	}
 }
@@ -50,7 +51,7 @@ func (s *Sandbox) CreateChunk(x, y int) *Chunk {
 	}
 	chunk := NewChunk(s.cWidth, s.cHeight, x, y)
 	s.chunkMutex.Lock()
-	s.chunks = append(s.chunks, chunk)
+	s.Chunks = append(s.Chunks, chunk)
 	s.chunkMutex.Unlock()
 	s.chunkLookup.Set(hash(x, y), chunk)
 	return chunk
@@ -80,7 +81,7 @@ func (s *Sandbox) GetCell(x, y int) *Cell {
 	return nil
 }
 
-func (s *Sandbox) SetCell(x, y int, cell Cell) {
+func (s *Sandbox) SetCell(x, y int, cell *Cell) {
 	chunk := s.GetChunk(x, y)
 	if chunk != nil {
 		chunk.SetCell(x, y, cell)
@@ -96,21 +97,21 @@ func (s *Sandbox) MoveCell(x, y, xn, yn int) {
 }
 
 func (s *Sandbox) RemoveEmptyChunks() {
-	for i := 0; i < len(s.chunks); i++ {
-		chunk := s.chunks[i]
+	for i := 0; i < len(s.Chunks); i++ {
+		chunk := s.Chunks[i]
 		if chunk.filledCells == 0 {
-			s.chunkLookup.Remove(hash(chunk.x, chunk.y))
+			s.chunkLookup.Remove(hash(chunk.X, chunk.Y))
 			s.chunkMutex.Lock()
-			s.chunks = append(s.chunks[:i], s.chunks[i+1:]...)
+			s.Chunks = append(s.Chunks[:i], s.Chunks[i+1:]...)
 			s.chunkMutex.Unlock()
 			i--
 
 			chunk = nil
 		} else {
 			if chunk != nil {
-				if !s.chunkLookup.Has(hash(chunk.x, chunk.y)) {
+				if !s.chunkLookup.Has(hash(chunk.X, chunk.Y)) {
 					s.chunkMutex.Lock()
-					s.chunks = append(s.chunks[:i], s.chunks[i+1:]...)
+					s.Chunks = append(s.Chunks[:i], s.Chunks[i+1:]...)
 					s.chunkMutex.Unlock()
 				}
 			}
@@ -121,7 +122,7 @@ func (s *Sandbox) RemoveEmptyChunks() {
 
 func (s *Sandbox) MoveUpdate() {
 	var wg sync.WaitGroup
-	for _, chunk := range s.chunks {
+	for _, chunk := range s.Chunks {
 		wg.Add(1)
 		go func(s *Sandbox, c *Chunk) {
 			NewWorker(s, c).UpdateChunk()
@@ -130,7 +131,7 @@ func (s *Sandbox) MoveUpdate() {
 	}
 	wg.Wait()
 
-	for _, chunk := range s.chunks {
+	for _, chunk := range s.Chunks {
 		wg.Add(1)
 		go func(c *Chunk) {
 			c.ApplyChanges()
@@ -139,14 +140,14 @@ func (s *Sandbox) MoveUpdate() {
 	}
 	wg.Wait()
 
-	for _, chunk := range s.chunks {
+	for _, chunk := range s.Chunks {
 		chunk.UpdateRect()
 	}
 }
 
 func (s *Sandbox) TempUpdate() {
 	var wg sync.WaitGroup
-	for _, chunk := range s.chunks {
+	for _, chunk := range s.Chunks {
 		wg.Add(1)
 		go func(s *Sandbox, c *Chunk) {
 			NewWorker(s, c).UpdateChunkTemp()
@@ -158,7 +159,7 @@ func (s *Sandbox) TempUpdate() {
 
 func (s *Sandbox) StateUpdate() {
 	var wg sync.WaitGroup
-	for _, chunk := range s.chunks {
+	for _, chunk := range s.Chunks {
 		wg.Add(1)
 		go func(s *Sandbox, c *Chunk) {
 			NewWorker(s, c).UpdateChunkState()
@@ -182,19 +183,21 @@ func (s *Sandbox) KeepAlive(x, y int) {
 	}
 }
 
-func (s *Sandbox) Draw(pix []byte) {
-	for _, c := range s.chunks {
+func (s *Sandbox) Draw(pix []byte, screenWidth int) {
+	for _, c := range s.Chunks {
 		for i, cell := range c.cells {
-			x := i%c.width + c.x*c.width
-			y := i/c.width + c.y*c.height
+
+			x := i%c.Width + c.X*c.Width
+			y := i/c.Width + c.Y*c.Height
 			idx := (x + y*screenWidth)
-			if cell.cType == AIR {
+			if isEmpty(cell) {
 				pix[idx*4] = 0
 				pix[idx*4+1] = 0
 				pix[idx*4+2] = 0
 				pix[idx*4+3] = 0
 				continue
 			}
+
 			r := 0
 			g := 0
 			b := 0
@@ -219,9 +222,9 @@ func (s *Sandbox) Draw(pix []byte) {
 			g = int(cG) + g + cell.colorOffset
 			b = int(cB) + b + cell.colorOffset
 
-			pix[idx*4] = uint8(clamp(r, 0, 255))
-			pix[idx*4+1] = uint8(clamp(g, 0, 255))
-			pix[idx*4+2] = uint8(clamp(b, 0, 255))
+			pix[idx*4] = uint8(misc.Clamp(r, 0, 255))
+			pix[idx*4+1] = uint8(misc.Clamp(g, 0, 255))
+			pix[idx*4+2] = uint8(misc.Clamp(b, 0, 255))
 			pix[idx*4+3] = cA
 		}
 	}

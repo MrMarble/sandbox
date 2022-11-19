@@ -1,4 +1,4 @@
-package main
+package sandbox
 
 type Worker struct {
 	chunk   *Chunk
@@ -30,7 +30,7 @@ func (w *Worker) GetCell(x, y int) *Cell {
 	return w.sandbox.GetCell(x, y)
 }
 
-func (w *Worker) SetCell(x, y int, cell Cell) {
+func (w *Worker) SetCell(x, y int, cell *Cell) {
 	if w.chunk.InBounds(x, y) {
 		w.chunk.SetCell(x, y, cell)
 	} else {
@@ -42,16 +42,16 @@ func (w *Worker) MoveCell(x, y, dx, dy int) {
 	pingX := 0
 	pingY := 0
 	//fmt.Println("Moving cell from", x, y, "to", dx, dy, "in chunk", w.chunk.x, w.chunk.y)
-	if x == w.chunk.x*w.chunk.width {
+	if x == w.chunk.X*w.chunk.Width {
 		pingX = -1
 	}
-	if x == w.chunk.x*w.chunk.width+w.chunk.width-1 {
+	if x == w.chunk.X*w.chunk.Width+w.chunk.Width-1 {
 		pingX = 1
 	}
-	if y == w.chunk.y*w.chunk.height {
+	if y == w.chunk.Y*w.chunk.Height {
 		pingY = -1
 	}
-	if y == w.chunk.y*w.chunk.height+w.chunk.height-1 {
+	if y == w.chunk.Y*w.chunk.Height+w.chunk.Height-1 {
 		pingY = 1
 	}
 
@@ -73,14 +73,15 @@ func (w *Worker) MoveCell(x, y, dx, dy int) {
 }
 
 func (w *Worker) UpdateChunk() {
-	for x := w.chunk.minX; x < w.chunk.maxX; x++ {
-		for y := w.chunk.minY; y < w.chunk.maxY; y++ {
-			c := w.chunk.GetCellAt(x + y*w.chunk.width)
-			px := x + w.chunk.x*w.chunk.width
-			py := y + w.chunk.y*w.chunk.height
-			if c.cType == AIR {
+	for x := w.chunk.MinX; x < w.chunk.MaxX; x++ {
+		for y := w.chunk.MinY; y < w.chunk.MaxY; y++ {
+			c := w.chunk.GetCellAt(x + y*w.chunk.Width)
+			if isEmpty(c) {
 				continue
 			}
+			px := x + w.chunk.X*w.chunk.Width
+			py := y + w.chunk.Y*w.chunk.Height
+
 			switch c.cType {
 			case SAND:
 				if c.extraData1 == 0 {
@@ -106,11 +107,14 @@ func (w *Worker) UpdateChunk() {
 }
 
 func (w *Worker) UpdateChunkState() {
-	for x := w.chunk.minX; x < w.chunk.maxX; x++ {
-		for y := w.chunk.minY; y < w.chunk.maxY; y++ {
-			c := w.chunk.GetCellAt(x + y*w.chunk.width)
-			px := x + w.chunk.x*w.chunk.width
-			py := y + w.chunk.y*w.chunk.height
+	for x := w.chunk.MinX; x < w.chunk.MaxX; x++ {
+		for y := w.chunk.MinY; y < w.chunk.MaxY; y++ {
+			c := w.chunk.GetCellAt(x + y*w.chunk.Width)
+			if isEmpty(c) {
+				continue
+			}
+			px := x + w.chunk.X*w.chunk.Width
+			py := y + w.chunk.Y*w.chunk.Height
 			if c.cType == AIR {
 				continue
 			}
@@ -133,11 +137,14 @@ func (w *Worker) UpdateChunkState() {
 }
 
 func (w *Worker) UpdateChunkTemp() {
-	for x := w.chunk.minX; x < w.chunk.maxX; x++ {
-		for y := w.chunk.minY; y < w.chunk.maxY; y++ {
-			c := w.chunk.GetCellAt(x + y*w.chunk.width)
-			px := x + w.chunk.x*w.chunk.width
-			py := y + w.chunk.y*w.chunk.height
+	for x := w.chunk.MinX; x < w.chunk.MaxX; x++ {
+		for y := w.chunk.MinY; y < w.chunk.MaxY; y++ {
+			c := w.chunk.GetCellAt(x + y*w.chunk.Width)
+			if isEmpty(c) {
+				continue
+			}
+			px := x + w.chunk.X*w.chunk.Width
+			py := y + w.chunk.Y*w.chunk.Height
 			if c.cType == AIR || c.temp == 0 {
 				continue
 			}

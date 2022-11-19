@@ -1,9 +1,10 @@
-package main
+package sandbox
 
 import (
 	"sort"
 	"sync"
 
+	. "github.com/mrmarble/sandbox/pkg/misc"
 	"pgregory.net/rand"
 )
 
@@ -13,18 +14,18 @@ type Change struct {
 }
 
 type Chunk struct {
-	width, height int
-	x, y          int
+	Width, Height int
+	X, Y          int
 
 	// Dirty rect
-	minX, minY int
-	maxX, maxY int
+	MinX, MinY int
+	MaxX, MaxY int
 	// Working dirty rect
 	minXw, minYw int
 	maxXw, maxYw int
 
 	filledCells int
-	cells       []Cell
+	cells       []*Cell
 	changes     []Change
 
 	filledCellsMutex sync.Mutex
@@ -34,11 +35,11 @@ type Chunk struct {
 
 func NewChunk(width, height, x, y int) *Chunk {
 	return &Chunk{
-		width:  width,
-		height: height,
-		x:      x,
-		y:      y,
-		cells:  make([]Cell, width*height),
+		Width:  width,
+		Height: height,
+		X:      x,
+		Y:      y,
+		cells:  make([]*Cell, width*height),
 	}
 }
 
@@ -46,40 +47,39 @@ func (c *Chunk) KeepAlive(x, y int) {
 	c.KeepAliveAt(c.GetIndex(x, y))
 }
 func (c *Chunk) KeepAliveAt(i int) {
-	x := i % c.width
-	y := i / c.width
+	x := i % c.Width
+	y := i / c.Width
 
 	c.dirtyRectMutex.Lock()
-	c.minXw = clamp(min(x-2, c.minXw), 0, c.width)
-	c.minYw = clamp(min(y-2, c.minYw), 0, c.height)
-	c.maxXw = clamp(max(x+2, c.maxXw), 0, c.width)
-	c.maxYw = clamp(max(y+2, c.maxYw), 0, c.height)
+	c.minXw = Clamp(Min(x-2, c.minXw), 0, c.Width)
+	c.minYw = Clamp(Min(y-2, c.minYw), 0, c.Height)
+	c.maxXw = Clamp(Max(x+2, c.maxXw), 0, c.Width)
+	c.maxYw = Clamp(Max(y+2, c.maxYw), 0, c.Height)
 	c.dirtyRectMutex.Unlock()
 }
 
 func (c *Chunk) UpdateRect() {
-	c.minX = c.minXw
-	c.minY = c.minYw
-	c.maxX = c.maxXw
-	c.maxY = c.maxYw
+	c.MinX = c.minXw
+	c.MinY = c.minYw
+	c.MaxX = c.maxXw
+	c.MaxY = c.maxYw
 
-	c.minXw = c.width
-	c.minYw = c.height
+	c.minXw = c.Width
+	c.minYw = c.Height
 	c.maxXw = -1
 	c.maxYw = -1
 }
 
 // GetIndex returns the index of the cell at the given coordinates.
 func (c *Chunk) GetIndex(x, y int) int {
-	return (x - c.x*c.width) + (y-c.y*c.height)*c.width
+	return (x - c.X*c.Width) + (y-c.Y*c.Height)*c.Width
 }
 
 func (c *Chunk) InBounds(x, y int) bool {
-	left := c.x * c.width
-	right := left + c.width
-	top := c.y * c.height
-	bottom := top + c.height
-
+	left := c.X * c.Width
+	right := left + c.Width
+	top := c.Y * c.Height
+	bottom := top + c.Height
 	return x >= left && x < right &&
 		y >= top && y < bottom
 }
@@ -89,7 +89,7 @@ func (c *Chunk) IsEmpty(x, y int) bool {
 }
 
 func (c *Chunk) IsEmptyAt(i int) bool {
-	return c.cells[i].cType == AIR
+	return isEmpty(c.cells[i])
 }
 
 func (c *Chunk) GetCell(x, y int) *Cell {
@@ -97,19 +97,23 @@ func (c *Chunk) GetCell(x, y int) *Cell {
 }
 
 func (c *Chunk) GetCellAt(i int) *Cell {
-	return &c.cells[i]
+	return c.cells[i]
 }
 
-func (c *Chunk) SetCell(x, y int, cell Cell) {
+func (c *Chunk) SetCell(x, y int, cell *Cell) {
 	c.SetCellAt(c.GetIndex(x, y), cell)
 }
 
-func (c *Chunk) SetCellAt(i int, cell Cell) {
-	if c.cells[i].cType == AIR && cell.cType != AIR {
+func isEmpty(cell *Cell) bool {
+	return cell == nil || cell.cType == AIR
+}
+
+func (c *Chunk) SetCellAt(i int, cell *Cell) {
+	if isEmpty(c.cells[i]) && !isEmpty(cell) {
 		c.filledCellsMutex.Lock()
 		c.filledCells++
 		c.filledCellsMutex.Unlock()
-	} else if c.cells[i].cType != AIR && cell.cType == AIR {
+	} else if !isEmpty(c.cells[i]) && isEmpty(cell) {
 		c.filledCellsMutex.Lock()
 		c.filledCells--
 		c.filledCellsMutex.Unlock()
@@ -149,8 +153,8 @@ func (c *Chunk) ApplyChanges() {
 			src := c.changes[rng].src
 			chunk := c.changes[rng].chunk
 
-			c.SetCellAt(dst, *chunk.GetCellAt(src))
-			chunk.SetCellAt(src, Cell{})
+			c.SetCellAt(dst, chunk.GetCellAt(src))
+			chunk.SetCellAt(src, nil)
 
 			iPrev = i + 1
 		}

@@ -1,57 +1,59 @@
-package main
+package sandbox
 
 import (
+	"github.com/mrmarble/sandbox/pkg/misc"
 	"pgregory.net/rand"
 )
 
 func (s *Worker) UpdateSteam(x, y int) {
 	cell := s.GetCell(x, y)
 	if cell.temp < 100 {
-		s.SetCell(x, y, *NewCell(WATR))
+		s.SetCell(x, y, NewCell(WATR))
 	}
 }
 
 func (w *Worker) UpdateFire(x, y int) {
 	cell := w.GetCell(x, y)
 	if cell.temp < 40 || cell.extraData2 > 60 {
-		w.SetCell(x, y, Cell{cType: AIR})
+		w.SetCell(x, y, nil)
 	}
 	if w.InBounds(x, y+1) {
 		other := w.GetCell(x, y+1)
-		if other.IsFlamable() && rand.Intn(100) > 65 {
-			w.SetCell(x, y+1, *NewCell(FIRE))
-			w.SetCell(x, y, Cell{cType: AIR})
+		if !isEmpty(other) && other.IsFlamable() && rand.Intn(100) > 65 {
+			w.SetCell(x, y+1, NewCell(FIRE))
+			w.SetCell(x, y, nil)
 		}
 	}
 	if w.InBounds(x, y-1) {
 		other := w.GetCell(x, y-1)
-		if other.IsFlamable() && rand.Intn(100) > 65 {
-			w.SetCell(x, y-1, *NewCell(FIRE))
-			w.SetCell(x, y, Cell{cType: AIR})
+		if !isEmpty(other) && other.IsFlamable() && rand.Intn(100) > 65 {
+			w.SetCell(x, y-1, NewCell(FIRE))
+			w.SetCell(x, y, nil)
 		}
 	}
 	if w.InBounds(x+1, y) {
 		other := w.GetCell(x+1, y)
-		if other.IsFlamable() && rand.Intn(100) > 65 {
-			w.SetCell(x+1, y, *NewCell(FIRE))
-			w.SetCell(x, y, Cell{cType: AIR})
+		if !isEmpty(other) && other.IsFlamable() && rand.Intn(100) > 65 {
+			w.SetCell(x+1, y, NewCell(FIRE))
+			w.SetCell(x, y, nil)
 		}
 	}
 	if w.InBounds(x-1, y) {
 		other := w.GetCell(x-1, y)
-		if other.IsFlamable() && rand.Intn(100) > 65 {
-			w.SetCell(x-1, y, *NewCell(FIRE))
-			w.SetCell(x, y, Cell{cType: AIR})
+		if !isEmpty(other) && other.IsFlamable() && rand.Intn(100) > 65 {
+			w.SetCell(x-1, y, NewCell(FIRE))
+			w.SetCell(x, y, nil)
 		}
 	}
 }
 
 func (s *Worker) UpdateSmoke(x, y int) {
 	cell := s.GetCell(x, y)
+
 	if cell.extraData1 == 0 {
 		cell.extraData2--
 		if cell.extraData2 == 0 {
-			s.SetCell(x, y, Cell{cType: AIR})
+			s.SetCell(x, y, nil)
 		}
 	} else {
 		cell.extraData1--
@@ -60,11 +62,12 @@ func (s *Worker) UpdateSmoke(x, y int) {
 
 func (s *Worker) UpdateWater(x, y int) {
 	cell := s.GetCell(x, y)
+
 	if cell.temp >= 100 {
-		t := clamp(float64(cell.temp/150), 0, 1)
+		t := misc.Clamp(float64(cell.temp/150), 0, 1)
 		chance := (1-t)*0.3 + t*0.7
 		if rand.Intn(100) > int(chance) {
-			s.SetCell(x, y, *NewCell(STEM))
+			s.SetCell(x, y, NewCell(STEM))
 		}
 	}
 
@@ -74,9 +77,9 @@ func (s *Worker) UpdateWater(x, y int) {
 			return
 		}
 		cellBelow := s.GetCell(x, y2)
-		if cellBelow.cType == SAND {
+		if !isEmpty(cellBelow) && cellBelow.cType == SAND {
 			if cellBelow.extraData1 == 0 {
-				s.SetCell(x, y, Cell{cType: AIR})
+				s.SetCell(x, y, nil)
 				cellBelow.extraData1 = 1
 				return
 			}
@@ -90,18 +93,20 @@ func (s *Worker) UpdateWater(x, y int) {
 
 func (s *Worker) MoveFire(x, y int, cell *Cell) {
 	nx, ny := s.MoveGas(x, y, cell)
-	extraData2 := s.GetCell(nx, ny).extraData2
-	if ny == y {
-		extraData2++
-	} else {
-		extraData2--
+	if other := s.GetCell(nx, ny); !isEmpty(other) {
+		extraData2 := other.extraData2
+		if ny == y {
+			extraData2++
+		} else {
+			extraData2--
+		}
+		cell.extraData2 = extraData2
 	}
-	cell.extraData2 = extraData2
 }
 
 func (s *Worker) UpdateSand(x, y int) {
 	cell := s.GetCell(x, y)
-	if cell.extraData1 == 1 && cell.temp >= 30 {
+	if !isEmpty(cell) && cell.extraData1 == 1 && cell.temp >= 30 {
 		cell.extraData1 = 0
 	}
 }

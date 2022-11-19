@@ -1,4 +1,4 @@
-package main
+package ui
 
 import (
 	"image"
@@ -17,7 +17,7 @@ var (
 	normalFont font.Face
 )
 
-func rect(image *ebiten.Image, x, y, w, h int, color color.Color, filled bool) {
+func Rect(image *ebiten.Image, x, y, w, h int, color color.Color, filled bool) {
 	whiteImage.Fill(color)
 	var path vector.Path
 	var vs []ebiten.Vertex
@@ -38,14 +38,14 @@ func rect(image *ebiten.Image, x, y, w, h int, color color.Color, filled bool) {
 	image.DrawTriangles(vs, is, subImage, &ebiten.DrawTrianglesOptions{FillRule: ebiten.EvenOdd})
 }
 
-func button(image *ebiten.Image, str string, x, y int, col color.Color, active bool) {
+func Button(image *ebiten.Image, str string, x, y int, col color.Color, active bool) {
 	width := 20
 	height := 8
 	padding := 3
 	inset := (width - len(str)*5) / 2
-	rect(image, x, y, width+padding*2, height+padding*2, col, true)
+	Rect(image, x, y, width+padding*2, height+padding*2, col, true)
 	text.Draw(image, str, bitmapfont.Gothic10r, x+padding+inset+4, y+height+padding, color.White)
 	if active {
-		rect(image, x, y, width+padding*2, height+padding*2, color.White, false)
+		Rect(image, x, y, width+padding*2, height+padding*2, color.White, false)
 	}
 }

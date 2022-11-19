@@ -1,4 +1,4 @@
-package main
+package sandbox
 
 import (
 	"image/color"
@@ -11,8 +11,7 @@ import (
 type CellType int
 
 const (
-	AIR CellType = iota
-	SAND
+	SAND CellType = iota
 	WATR
 	WALL
 	STNE
@@ -20,9 +19,10 @@ const (
 	STEM
 	WOOD
 	FIRE
+	AIR // special type for empty cells. Always last for easy iteration
 )
 
-func getColor(cType CellType) color.RGBA {
+func (cType CellType) Color() color.RGBA {
 	switch cType {
 	case SAND:
 		return color.RGBA{0xc2, 0xb2, 0x80, 0xff} //#c2b280
@@ -105,8 +105,8 @@ func (c *Cell) BaseColor() color.RGBA {
 		if c.extraData1 > 0 {
 			return color.RGBA{0xb1, 0x9d, 0x5e, 0xff} //#b19d5e
 		}
-		return getColor(c.cType)
+		return c.cType.Color()
 	default:
-		return getColor(c.cType)
+		return c.cType.Color()
 	}
 }
