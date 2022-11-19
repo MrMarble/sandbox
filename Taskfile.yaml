@@ -25,6 +25,8 @@ tasks:
       - GOOS=linux GOARCH=amd64 go build -o ./bin/{{.name}}_linux-amd64 {{.dir}}
 
   build:windows:
+    env:
+      CGO_ENABLED: "0"
     cmds:
       - echo "Building Windows binary..."
       - GOOS=windows GOARCH=amd64 go build -o ./bin/{{.name}}_windows-amd64.exe {{.dir}}
