@@ -169,6 +169,7 @@ func (s *Sandbox) StateUpdate() {
 }
 
 func (s *Sandbox) Update() {
+	s.RemoveEmptyChunks()
 	s.MoveUpdate()
 	s.TempUpdate()
 	s.StateUpdate()
@@ -224,7 +225,4 @@ func (s *Sandbox) Draw(pix []byte) {
 			pix[idx*4+3] = cA
 		}
 	}
-	// Remove chunks here to avoid leaving dangling particles
-	s.RemoveEmptyChunks()
-
 }

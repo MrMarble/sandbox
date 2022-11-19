@@ -169,7 +169,7 @@ func main() {
 	}
 	ebiten.SetTPS(120)
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
-	ebiten.SetScreenClearedEveryFrame(true)
+	ebiten.SetScreenClearedEveryFrame(false)
 	ebiten.SetWindowTitle("Sandbox")
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
