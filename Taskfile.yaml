@@ -3,7 +3,8 @@
 version: "3"
 
 vars:
-  GREETING: Hello, World!
+  name: "sandbox"
+  dir: "./cmd"
 
 silent: true
 tasks:
@@ -11,27 +12,28 @@ tasks:
     cmds:
       - echo "Starting development server..."
       - echo "Listening on http://localhost:8080/"
-      - go run github.com/hajimehoshi/wasmserve@latest ./src
+      - go run github.com/hajimehoshi/wasmserve@latest {{.dir}}
   build:wasm:
     cmds:
       - echo "Building WASM..."
-      - GOOS=js GOARCH=wasm go build -o ./bin/main.wasm ./src
+      - GOOS=js GOARCH=wasm go build -o ./bin/{{.name}}_wasm.wasm {{.dir}}
 
   build:linux:
     desc: Build for Linux. Dependencies https://ebitengine.org/en/documents/install.html?os=linux
     cmds:
       - echo "Building Linux binary..."
-      - GOOS=linux GOARCH=amd64 go build -o ./bin/linux-amd64 ./src
+      - GOOS=linux GOARCH=amd64 go build -o ./bin/{{.name}}_linux-amd64 {{.dir}}
 
   build:windows:
     cmds:
       - echo "Building Windows binary..."
-      - GOOS=windows GOARCH=amd64 go build -o ./bin/windows-amd64.exe ./src
+      - GOOS=windows GOARCH=amd64 go build -o ./bin/{{.name}}_windows-amd64.exe {{.dir}}
 
   build:
     deps:
       - generate
     cmds:
+      - rm -rf ./bin/*
       - task: build:wasm
       - task: build:linux
       - task: build:windows
@@ -42,4 +44,4 @@ tasks:
         msg: "stringer is not installed. Please install it with 'go install golang.org/x/tools/cmd/stringer@latest'"
     cmds:
       - echo "Generating assets..."
-      - go generate -x ./src
+      - go generate -x ./...
