@@ -57,7 +57,14 @@ func (w *Worker) UpdateReplicator(x, y int) {
 func (w *Worker) UpdateFire(x, y int) {
 	cell := w.GetCell(x, y)
 	if cell.temp < 40 || cell.extraData2 > 60 {
-		w.SetCell(x, y, nil)
+		if rand.Intn(10) > 1 {
+			w.SetCell(x, y, nil)
+		} else {
+			smk := NewCell(SMOKE)
+			smk.extraData1 = 0
+			smk.extraData2 = 30 + (rand.Intn(30) + -15)
+			w.SetCell(x, y, smk)
+		}
 	}
 	if w.InBounds(x, y+1) {
 		other := w.GetCell(x, y+1)
