@@ -136,7 +136,7 @@ func (w *Worker) UpdateChunkState() {
 				w.UpdateSand(px, py)
 			case FIRE:
 				w.UpdateFire(px, py)
-			case REPL:
+			case CLNE:
 				w.UpdateReplicator(px, py)
 			}
 		}

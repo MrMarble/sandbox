@@ -18,7 +18,7 @@ func (w *Worker) UpdateReplicator(x, y int) {
 
 	if w.InBounds(x, y+2) {
 		other := w.GetCell(x, y+1)
-		if !isEmpty(other) && other.CType != REPL {
+		if !isEmpty(other) && other.CType != CLNE {
 			cell.extraData1 = 1
 			if w.IsEmpty(x, y+2) {
 				w.SetCell(x, y+2, NewCell(other.CType))
@@ -27,7 +27,7 @@ func (w *Worker) UpdateReplicator(x, y int) {
 	}
 	if w.InBounds(x, y-2) {
 		other := w.GetCell(x, y-1)
-		if !isEmpty(other) && other.CType != REPL {
+		if !isEmpty(other) && other.CType != CLNE {
 			cell.extraData1 = 1
 			if w.IsEmpty(x, y-2) {
 				w.SetCell(x, y-2, NewCell(other.CType))
@@ -36,7 +36,7 @@ func (w *Worker) UpdateReplicator(x, y int) {
 	}
 	if w.InBounds(x+2, y) {
 		other := w.GetCell(x+2, y)
-		if !isEmpty(other) && other.CType != REPL {
+		if !isEmpty(other) && other.CType != CLNE {
 			cell.extraData1 = 1
 			if w.IsEmpty(x+2, y) {
 				w.SetCell(x+2, y, NewCell(other.CType))
@@ -45,7 +45,7 @@ func (w *Worker) UpdateReplicator(x, y int) {
 	}
 	if w.InBounds(x-2, y) {
 		other := w.GetCell(x-2, y)
-		if !isEmpty(other) && other.CType != REPL {
+		if !isEmpty(other) && other.CType != CLNE {
 			cell.extraData1 = 1
 			if w.IsEmpty(x-2, y) {
 				w.SetCell(x-2, y, NewCell(other.CType))

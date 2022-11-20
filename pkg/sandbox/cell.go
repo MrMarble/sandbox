@@ -21,7 +21,7 @@ const (
 	WOOD
 	FIRE
 	IRON
-	REPL
+	CLNE
 	AIR // special type for empty cells. Always last for easy iteration
 )
 
@@ -47,7 +47,7 @@ func (cType CellType) Color() color.RGBA {
 		return color.RGBA{0x9f, 0xc6, 0xc5, 0xff} //#9FC6C5
 	case IRON:
 		return color.RGBA{0x9c, 0x9c, 0x9c, 0xff} //#9c9c9c
-	case REPL:
+	case CLNE:
 		return color.RGBA{0xe0, 0xc0, 0x30, 0xff} //#e0c030
 	default:
 		return color.RGBA{0x00, 0x00, 0x00, 0xff} //#000000
@@ -84,7 +84,7 @@ func NewCell(cType CellType) *Cell {
 
 func (c *Cell) ThermalConductivity() int {
 	switch c.CType {
-	case SAND, REPL:
+	case SAND, CLNE:
 		return 3
 	case WATER:
 		return 5
