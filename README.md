@@ -22,6 +22,7 @@ You can try it out [here](https://mrmarble.dev/sandbox/).
 - Wheel: Change brush size
 - <kbd>P</kbd>: Toggle pause
 - <kbd>D</kbd>: Show debug info
+- <kbd>T</kbd>: Toggle temperature effect
 - <kbd>Space</kbd>: Clear the screen
 
 
