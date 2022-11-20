@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - "*.go"
-      - "index.html"
-      - "go.*"
+      - "**/*.go"
+      - "**/index.html"
+      - "/go.*"
 
   workflow_dispatch:
 
