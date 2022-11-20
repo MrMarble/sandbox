@@ -107,6 +107,10 @@ func (w *Worker) UpdateChunk() {
 				w.MoveGas(px, py, c)
 			case FIRE:
 				w.MoveFire(px, py, c)
+			case PLANT:
+				if c.extraData2 == 0 {
+					w.MovePowder(px, py, c)
+				}
 			}
 		}
 	}
@@ -138,6 +142,8 @@ func (w *Worker) UpdateChunkState() {
 				w.UpdateFire(px, py)
 			case CLNE:
 				w.UpdateReplicator(px, py)
+			case PLANT:
+				w.UpdatePlant(px, py)
 			}
 		}
 	}

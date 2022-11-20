@@ -54,6 +54,44 @@ func (w *Worker) UpdateReplicator(x, y int) {
 	}
 }
 
+func (w *Worker) UpdatePlant(x, y int) {
+	cell := w.GetCell(x, y)
+	if cell.temp >= 100 {
+		w.SetCell(x, y, NewCell(FIRE))
+		return
+	}
+
+	if w.InBounds(x, y+1) {
+		other := w.GetCell(x, y+1)
+		if !isEmpty(other) {
+			if other.CType == SAND && other.extraData1 == 1 {
+				cell.extraData2 = 1
+			}
+			if other.CType == PLANT && other.extraData2 == 1 {
+				cell.extraData2 = 1
+			}
+		}
+	}
+
+	if y > 0 {
+		if cell.extraData2 == 1 {
+			extraData1 := cell.extraData1
+			if extraData1 > 0 {
+				xOffset := rand.Intn(3) - 1
+				yOffset := rand.Intn(6) - 2
+				x += xOffset
+				y += yOffset
+				if w.InBounds(x, y) && w.IsEmpty(x, y) {
+					child := NewCell(PLANT)
+					child.extraData1 = extraData1 - 1
+					child.extraData2 = 1
+					w.SetCell(x, y, child)
+				}
+			}
+		}
+	}
+}
+
 func (w *Worker) UpdateFire(x, y int) {
 	cell := w.GetCell(x, y)
 	if cell.temp < 40 || cell.extraData2 > 60 {

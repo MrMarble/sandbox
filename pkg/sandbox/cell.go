@@ -22,6 +22,7 @@ const (
 	FIRE
 	IRON
 	CLNE
+	PLANT
 	AIR // special type for empty cells. Always last for easy iteration
 )
 
@@ -49,6 +50,8 @@ func (cType CellType) Color() color.RGBA {
 		return color.RGBA{0x9c, 0x9c, 0x9c, 0xff} //#9c9c9c
 	case CLNE:
 		return color.RGBA{0xe0, 0xc0, 0x30, 0xff} //#e0c030
+	case PLANT:
+		return color.RGBA{0x14, 0x3d, 0x15, 0xff} //#143d15
 	default:
 		return color.RGBA{0x00, 0x00, 0x00, 0xff} //#000000
 	}
@@ -78,13 +81,15 @@ func NewCell(cType CellType) *Cell {
 	case FIRE:
 		cell.extraData1 = rand.Intn(60)
 		cell.temp = 130
+	case PLANT:
+		cell.extraData1 = rand.Intn(18) + 1
 	}
 	return cell
 }
 
 func (c *Cell) ThermalConductivity() int {
 	switch c.CType {
-	case SAND, CLNE:
+	case SAND, CLNE, PLANT:
 		return 3
 	case WATER:
 		return 5
@@ -103,7 +108,7 @@ func (c *Cell) ThermalConductivity() int {
 
 func (c *Cell) IsFlamable() bool {
 	switch c.CType {
-	case WOOD:
+	case WOOD, PLANT:
 		return true
 	default:
 		return false
@@ -115,6 +120,11 @@ func (c *Cell) BaseColor() color.RGBA {
 	case SAND:
 		if c.extraData1 > 0 {
 			return color.RGBA{0xb1, 0x9d, 0x5e, 0xff} //#b19d5e
+		}
+		return c.CType.Color()
+	case PLANT:
+		if c.extraData1 < 2 {
+			return color.RGBA{0x06, 0x59, 0x09, 0xff} //#065909
 		}
 		return c.CType.Color()
 	default:
