@@ -16,7 +16,8 @@ tasks:
   build:wasm:
     cmds:
       - echo "Building WASM..."
-      - GOOS=js GOARCH=wasm go build -o ./bin/{{.name}}_wasm.wasm {{.dir}}
+      - mkdir -p ./bin/wasm && cp ./assets/index.html ./bin/wasm/index.html
+      - GOOS=js GOARCH=wasm go build -o ./bin/wasm/{{.name}}_wasm.wasm {{.dir}}
 
   build:linux:
     desc: Build for Linux. Dependencies https://ebitengine.org/en/documents/install.html?os=linux
