@@ -21,6 +21,7 @@ You can try it out [here](https://mrmarble.dev/sandbox/).
 - Left click: Spawn a particle
 - Wheel: Change brush size
 - <kbd>P</kbd>: Toggle pause
+- <kbd>.</kbd>: Advance one frame (when paused)
 - <kbd>D</kbd>: Show debug info
 - <kbd>T</kbd>: Toggle temperature effect
 - <kbd>Space</kbd>: Clear the screen

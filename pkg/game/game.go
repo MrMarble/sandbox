@@ -68,7 +68,7 @@ func (g *Game) Update() error {
 	g.menu.Update()
 	g.placeQueueParticles()
 
-	if !g.pause {
+	if !g.pause || inpututil.IsKeyJustPressed(ebiten.KeyPeriod) {
 		g.sandbox.Update(g.tempOverlay)
 	}
 	return nil
