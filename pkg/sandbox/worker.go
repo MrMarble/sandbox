@@ -168,40 +168,48 @@ func (w *Worker) UpdateChunkTemp() {
 				other := w.GetCell(px, py+1)
 				if !isEmpty(other) {
 					tc := conductivity + other.ThermalConductivity()
-					t := temp / tc
-					c.temp -= t
-					other.temp += t
-					w.chunk.KeepAlive(px, py+1)
+					if tc > 0 {
+						t := temp / tc
+						c.temp -= t
+						other.temp += t
+						w.chunk.KeepAlive(px, py+1)
+					}
 				}
 			}
 			if w.InBounds(px, py-1) {
 				other := w.GetCell(px, py-1)
 				if !isEmpty(other) {
 					tc := conductivity + other.ThermalConductivity()
-					t := temp / tc
-					c.temp -= t
-					other.temp += t
-					w.chunk.KeepAlive(px, py-1)
+					if tc > 0 {
+						t := temp / tc
+						c.temp -= t
+						other.temp += t
+						w.chunk.KeepAlive(px, py-1)
+					}
 				}
 			}
 			if w.InBounds(px+1, py) {
 				other := w.GetCell(px+1, py)
 				if !isEmpty(other) {
 					tc := conductivity + other.ThermalConductivity()
-					t := temp / tc
-					c.temp -= t
-					other.temp += t
-					w.chunk.KeepAlive(px+1, py)
+					if tc > 0 {
+						t := temp / tc
+						c.temp -= t
+						other.temp += t
+						w.chunk.KeepAlive(px+1, py)
+					}
 				}
 			}
 			if w.InBounds(px-1, py) {
 				other := w.GetCell(px-1, py)
 				if !isEmpty(other) {
 					tc := conductivity + other.ThermalConductivity()
-					t := temp / tc
-					c.temp -= t
-					other.temp += t
-					w.chunk.KeepAlive(px-1, py)
+					if tc > 0 {
+						t := temp / tc
+						c.temp -= t
+						other.temp += t
+						w.chunk.KeepAlive(px-1, py)
+					}
 				}
 			}
 		}
