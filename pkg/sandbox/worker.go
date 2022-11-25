@@ -152,8 +152,8 @@ func (w *Worker) UpdateChunkState() {
 func (w *Worker) UpdateChunkTemp() {
 
 	directions := [][]int{
-		{0, -1}, // bottom
-		{0, 1},  // up
+		{0, -1}, // up
+		{0, 1},  // bottom
 		{1, 0},  // right
 		{-1, 0}, // left
 	}
