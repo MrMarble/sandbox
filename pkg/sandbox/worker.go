@@ -150,6 +150,14 @@ func (w *Worker) UpdateChunkState() {
 }
 
 func (w *Worker) UpdateChunkTemp() {
+
+	directions := [][]int{
+		{0, -1}, // up
+		{0, 1},  // bottom
+		{1, 0},  // right
+		{-1, 0}, // left
+	}
+
 	for x := w.chunk.MinX; x < w.chunk.MaxX; x++ {
 		for y := w.chunk.MinY; y < w.chunk.MaxY; y++ {
 			c := w.chunk.GetCellAt(x + y*w.chunk.Width)
@@ -164,53 +172,24 @@ func (w *Worker) UpdateChunkTemp() {
 			temp := c.temp
 			conductivity := c.ThermalConductivity()
 
-			if w.InBounds(px, py+1) {
-				other := w.GetCell(px, py+1)
-				if !isEmpty(other) {
-					tc := conductivity + other.ThermalConductivity()
-					if tc > 0 {
-						t := temp / tc
-						c.temp -= t
-						other.temp += t
-						w.chunk.KeepAlive(px, py+1)
-					}
-				}
+			for _, dir := range directions {
+				w.updateTemp(dir[0]+px, dir[1]+py, temp, conductivity, c.temp)
 			}
-			if w.InBounds(px, py-1) {
-				other := w.GetCell(px, py-1)
-				if !isEmpty(other) {
-					tc := conductivity + other.ThermalConductivity()
-					if tc > 0 {
-						t := temp / tc
-						c.temp -= t
-						other.temp += t
-						w.chunk.KeepAlive(px, py-1)
-					}
-				}
-			}
-			if w.InBounds(px+1, py) {
-				other := w.GetCell(px+1, py)
-				if !isEmpty(other) {
-					tc := conductivity + other.ThermalConductivity()
-					if tc > 0 {
-						t := temp / tc
-						c.temp -= t
-						other.temp += t
-						w.chunk.KeepAlive(px+1, py)
-					}
-				}
-			}
-			if w.InBounds(px-1, py) {
-				other := w.GetCell(px-1, py)
-				if !isEmpty(other) {
-					tc := conductivity + other.ThermalConductivity()
-					if tc > 0 {
-						t := temp / tc
-						c.temp -= t
-						other.temp += t
-						w.chunk.KeepAlive(px-1, py)
-					}
-				}
+
+		}
+	}
+}
+
+func (w *Worker) updateTemp(px, py, temp, conductivity, cTemp int) {
+	if w.InBounds(px, py) {
+		other := w.GetCell(px, py)
+		if !isEmpty(other) {
+			tc := conductivity + other.ThermalConductivity()
+			if tc > 0 {
+				t := temp / tc
+				cTemp -= t
+				other.temp += t
+				w.chunk.KeepAlive(px, py)
 			}
 		}
 	}
