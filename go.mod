@@ -8,7 +8,7 @@ require (
 	golang.org/x/exp v0.0.0-20221114191408-850992195362
 )
 
-require golang.org/x/text v0.4.0 // indirect
+require golang.org/x/text v0.7.0 // indirect
 
 require (
 	github.com/ebitengine/purego v0.0.0-20220905075623-aeed57cda744 // indirect
@@ -17,7 +17,7 @@ require (
 	github.com/jezek/xgb v1.0.1 // indirect
 	github.com/orcaman/concurrent-map/v2 v2.0.1
 	golang.org/x/exp/shiny v0.0.0-20221114191408-850992195362 // indirect
-	golang.org/x/image v0.1.0 // indirect
+	golang.org/x/image v0.5.0 // indirect
 	golang.org/x/mobile v0.0.0-20220722155234-aaac322e2105 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	pgregory.net/rand v1.0.2
